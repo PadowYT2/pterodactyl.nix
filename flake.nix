@@ -19,11 +19,12 @@
   } @ inputs:
     {
       nixosModules = {
-        pterodactyl-wings = import ./wings/pterodactyl/module.nix;
-        default = self.nixosModules.pterodactyl-wings;
+        pterodactyl = {
+          wings = import ./pterodactyl/wings/module.nix;
+        };
       };
 
-      overlays.default = import ./wings/overlay.nix;
+      overlays.default = import ./overlays.nix;
     }
     // (inputs.flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {
@@ -35,8 +36,7 @@
       };
     in {
       packages = {
-        pterodactyl-wings = pkgs.pterodactyl-wings;
-        default = pkgs.pterodactyl-wings;
+        pterodactyl = pkgs.pterodactyl;
       };
     }));
 }
