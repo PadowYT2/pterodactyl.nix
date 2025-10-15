@@ -11,7 +11,10 @@ with lib; let
       APP_NAME = cfg.app.name;
       APP_ENV = cfg.app.env;
       APP_DEBUG = cfg.app.debug;
-      APP_KEY = cfg.app.key;
+      APP_KEY =
+        if cfg.app.keyFile != null
+        then null
+        else cfg.app.key;
       APP_TIMEZONE = cfg.app.timezone;
       APP_URL = cfg.app.url;
       APP_ENVIRONMENT_ONLY = cfg.app.environmentOnly;
@@ -113,7 +116,13 @@ in {
       };
 
       key = mkOption {
-        type = types.str;
+        type = types.nullOr types.str;
+        default = null;
+      };
+
+      keyFile = mkOption {
+        type = types.nullOr types.path;
+        default = null;
       };
 
       timezone = mkOption {
@@ -283,6 +292,10 @@ in {
   config = mkIf cfg.enable {
     assertions = [
       {
+        assertion = cfg.app.key == null || cfg.app.keyFile == null;
+        message = "cannot set both services.pterodactyl.panel.app.key and services.pterodactyl.panel.app.keyFile.";
+      }
+      {
         assertion = cfg.database.password == null || cfg.database.passwordFile == null;
         message = "cannot set both services.pterodactyl.panel.database.password and services.pterodactyl.panel.database.passwordFile.";
       }
@@ -338,7 +351,8 @@ in {
         Environment = mapAttrsToList (n: v: "${n}=${toString v}") (filterAttrs (n: v: v != null) env);
         EnvironmentFile = optional (cfg.extraEnvironmentFile != null) cfg.extraEnvironmentFile;
         LoadCredential =
-          (optional (cfg.database.passwordFile != null) "DB_PASSWORD:${cfg.database.passwordFile}")
+          (optional (cfg.app.keyFile != null) "APP_KEY:${cfg.app.keyFile}")
+          ++ (optional (cfg.database.passwordFile != null) "DB_PASSWORD:${cfg.database.passwordFile}")
           ++ (optional (cfg.redis.passwordFile != null) "REDIS_PASSWORD:${cfg.redis.passwordFile}")
           ++ (optional (cfg.hashids.saltFile != null) "HASHIDS_SALT:${cfg.hashids.saltFile}")
           ++ (optional (cfg.mail.passwordFile != null) "MAIL_PASSWORD:${cfg.mail.passwordFile}");
@@ -365,7 +379,8 @@ in {
         Environment = mapAttrsToList (n: v: "${n}=${toString v}") (filterAttrs (n: v: v != null) env);
         EnvironmentFile = optional (cfg.extraEnvironmentFile != null) cfg.extraEnvironmentFile;
         LoadCredential =
-          (optional (cfg.database.passwordFile != null) "DB_PASSWORD:${cfg.database.passwordFile}")
+          (optional (cfg.app.keyFile != null) "APP_KEY:${cfg.app.keyFile}")
+          ++ (optional (cfg.database.passwordFile != null) "DB_PASSWORD:${cfg.database.passwordFile}")
           ++ (optional (cfg.redis.passwordFile != null) "REDIS_PASSWORD:${cfg.redis.passwordFile}")
           ++ (optional (cfg.hashids.saltFile != null) "HASHIDS_SALT:${cfg.hashids.saltFile}")
           ++ (optional (cfg.mail.passwordFile != null) "MAIL_PASSWORD:${cfg.mail.passwordFile}");
