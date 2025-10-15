@@ -391,14 +391,16 @@ in {
       enable = mkDefault true;
       virtualHosts."${builtins.replaceStrings ["https://" "http://"] ["" ""] cfg.app.url}" = {
         root = "${cfg.package}/public";
-        index = "index.php";
         extraConfig = ''
+          index index.php;
           client_max_body_size 100m;
           client_body_timeout 120s;
           sendfile off;
         '';
         locations."/" = {
-          try_files = "$uri $uri/ /index.php?$query_string";
+          extraConfig = ''
+            try_files $uri $uri/ /index.php?$query_string;
+          '';
         };
         locations."~ \\.php$" = {
           extraConfig = ''
