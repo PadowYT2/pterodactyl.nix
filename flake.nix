@@ -15,6 +15,7 @@
     {
       nixosModules = {
         pterodactyl = {
+          panel = import ./pterodactyl/panel/module.nix;
           wings = import ./pterodactyl/wings/module.nix;
         };
       };

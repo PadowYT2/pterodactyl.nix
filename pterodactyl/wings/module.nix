@@ -77,13 +77,13 @@ in {
 
     user = mkOption {
       type = types.str;
-      default = "pterodactyl";
+      default = "pterodactyl-wings";
       description = "User to run wings as";
     };
 
     group = mkOption {
       type = types.str;
-      default = "pterodactyl";
+      default = "pterodactyl-wings";
       description = "Group to run wings as";
     };
 
@@ -253,8 +253,12 @@ in {
         message = "programs.pterodactyl.wings.settings.remote must be set";
       }
       {
-        assertion = (cfg.settings.tokenId != null && cfg.settings.token != null) || (cfg.settings.tokenIdFile != null && cfg.settings.tokenFile != null);
-        message = "either (tokenId and token) or (tokenIdFile and tokenFile) must be set in programs.pterodactyl.wings.settings";
+        assertion = cfg.settings.tokenId != null || cfg.settings.tokenIdFile != null;
+        message = "cannot set both programs.pterodactyl.wings.settings.tokenId and programs.pterodactyl.wings.settings.tokenIdFile";
+      }
+      {
+        assertion = cfg.settings.token != null || cfg.settings.tokenFile != null;
+        message = "cannot set both programs.pterodactyl.wings.settings.token and programs.pterodactyl.wings.settings.tokenFile";
       }
     ];
 
@@ -283,11 +287,10 @@ in {
         LogsDirectory = "pterodactyl";
         CacheDirectory = "pterodactyl";
         RuntimeDirectory = "wings";
+        LoadCredential =
+          (optional (cfg.settings.tokenFile != null) "WINGS_TOKEN:${cfg.settings.tokenFile}")
+          ++ (optional (cfg.settings.tokenIdFile != null) "WINGS_TOKEN_ID:${cfg.settings.tokenIdFile}");
       };
-
-      serviceConfig.LoadCredential =
-        (optional (cfg.settings.tokenFile != null) "WINGS_TOKEN:${cfg.settings.tokenFile}")
-        ++ (optional (cfg.settings.tokenIdFile != null) "WINGS_TOKEN_ID:${cfg.settings.tokenIdFile}");
     };
 
     systemd.tmpfiles.rules = [
