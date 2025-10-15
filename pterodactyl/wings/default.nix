@@ -1,8 +1,8 @@
 {
-  buildGoApplication,
+  buildGoModule,
   fetchFromGitHub,
 }:
-buildGoApplication rec {
+buildGoModule rec {
   pname = "wings";
   version = "1.11.13";
 
@@ -13,7 +13,7 @@ buildGoApplication rec {
     sha256 = "sha256-UpYUHWM2J8nH+srdKSpFQEaPx2Rj2+YdphV8jJXcoBU=";
   };
 
-  modules = ./gomod2nix.toml;
+  vendorHash = "sha256-eWfQE9cQ7zIkITWwnVu9Sf9vVFjkQih/ZW77d6p/Iw0=";
 
   doCheck = false;
 
