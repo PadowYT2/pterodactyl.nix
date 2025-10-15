@@ -18,10 +18,7 @@
     // (inputs.flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {
         inherit system;
-        overlays = [
-          self.overlays.default
-          inputs.gomod2nix.overlays.default
-        ];
+        overlays = [self.overlays.default];
       };
     in {
       packages = {
