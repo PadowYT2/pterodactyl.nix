@@ -19,7 +19,6 @@ with lib; let
       APP_URL = cfg.app.url;
       APP_ENVIRONMENT_ONLY = cfg.app.environmentOnly;
 
-      DB_CONNECTION = cfg.database.driver;
       DB_HOST = cfg.database.host;
       DB_PORT = cfg.database.port;
       DB_DATABASE = cfg.database.name;
@@ -144,10 +143,6 @@ in {
       createLocally = mkOption {
         type = types.bool;
         default = true;
-      };
-      driver = mkOption {
-        type = types.enum ["mysql" "mariadb"];
-        default = "mariadb";
       };
       host = mkOption {
         type = types.str;
