@@ -389,7 +389,7 @@ in {
 
     services.nginx = {
       enable = mkDefault true;
-      virtualHosts."${builtins.replaceStrings ["https://" "http://"] ["" ""] cfg.appUrl}" = {
+      virtualHosts."${builtins.replaceStrings ["https://" "http://"] ["" ""] cfg.app.url}" = {
         root = "${cfg.package}/public";
         index = "index.php";
         extraConfig = ''
