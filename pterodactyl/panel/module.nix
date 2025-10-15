@@ -238,14 +238,16 @@ in {
         default = "smtp";
       };
       host = mkOption {
-        type = types.str;
+        type = types.nullOr types.str;
+        default = null;
       };
       port = mkOption {
         type = types.port;
         default = 25;
       };
       username = mkOption {
-        type = types.str;
+        type = types.nullOr types.str;
+        default = null;
       };
       password = mkOption {
         type = types.nullOr types.str;
@@ -260,7 +262,8 @@ in {
         default = "tls";
       };
       fromAddress = mkOption {
-        type = types.str;
+        type = types.nullOr types.str;
+        default = null;
       };
       fromName = mkOption {
         type = types.str;
