@@ -315,6 +315,7 @@ in {
 
     services.mysql = optionalAttrs cfg.database.createLocally {
       enable = true;
+      package = pkgs.mariadb;
       ensureDatabases = [cfg.database.name];
       ensureUsers = [
         {
