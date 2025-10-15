@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -13,13 +12,7 @@
     ...
   } @ inputs:
     {
-      nixosModules = {
-        pterodactyl = {
-          panel = import ./pterodactyl/panel/module.nix;
-          wings = import ./pterodactyl/wings/module.nix;
-        };
-      };
-
+      nixosModules.default = import ./module.nix;
       overlays.default = import ./overlays.nix;
     }
     // (inputs.flake-utils.lib.eachDefaultSystem (system: let
