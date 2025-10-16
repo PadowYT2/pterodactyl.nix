@@ -75,6 +75,27 @@ with lib; let
       PTERODACTYL_TELEMETRY_ENABLED = cfg.telemetry.enable;
     }
     // cfg.extraEnvironment;
+
+  php = pkgs.php83.buildEnv {
+    extensions = {
+      enabled,
+      all,
+    }:
+      enabled
+      ++ (with all; [
+        bcmath
+        curl
+        dom
+        gd
+        mbstring
+        mysqli
+        opcache
+        pdo
+        pdo_mysql
+        redis
+        zip
+      ]);
+  };
 in {
   options.services.pterodactyl.panel = {
     enable = mkEnableOption "Pterodactyl Panel";
@@ -345,7 +366,7 @@ in {
         User = cfg.user;
         Group = cfg.group;
         Restart = "always";
-        ExecStart = "${pkgs.php83}/bin/php ${cfg.package}/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
+        ExecStart = "${php}/bin/php ${cfg.package}/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
         WorkingDirectory = cfg.package;
         Environment = mapAttrsToList (n: v: "${n}=${toString v}") (filterAttrs (n: v: v != null) env);
         EnvironmentFile = optional (cfg.extraEnvironmentFile != null) cfg.extraEnvironmentFile;
@@ -361,7 +382,7 @@ in {
     services.phpfpm.pools."pterodactyl-panel" = {
       user = cfg.user;
       group = cfg.group;
-      phpPackage = pkgs.php83;
+      phpPackage = php;
       settings = {
         "listen.owner" = config.services.nginx.user;
         "listen.group" = config.services.nginx.group;
