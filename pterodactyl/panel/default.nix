@@ -45,6 +45,7 @@ php83.buildComposerProject2 rec {
 
     mkdir -p $out
     cp -rT . $out/
+    mkdir -p $out/bootstrap/cache
 
     runHook postInstall
   '';
