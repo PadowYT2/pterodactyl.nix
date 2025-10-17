@@ -409,6 +409,7 @@ in {
 
       script = ''
         set -eu
+        mkdir -p /var/lib/pterodactyl-panel/bootstrap/cache
         ${pkgs.rsync}/bin/rsync -rltD --delete --exclude '/storage' --exclude '/bootstrap/cache' ${cfg.package}/ .
 
         install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (generators.toKeyValue {
