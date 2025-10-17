@@ -395,8 +395,8 @@ in {
     systemd.services.pterodactyl-panel-setup = {
       description = "Pterodactyl Panel setup";
       wantedBy = ["multi-user.target"];
-      after = ["network.target"] ++ optional cfg.database.createLocally "mysql.service";
-      requires = optional cfg.database.createLocally "mysql.service";
+      after = ["network.target" "tmpfiles.service"] ++ optional cfg.database.createLocally "mysql.service";
+      requires = ["tmpfiles.service"] ++ optional cfg.database.createLocally "mysql.service";
 
       serviceConfig = {
         Type = "oneshot";
@@ -409,7 +409,6 @@ in {
 
       script = ''
         set -eu
-        mkdir -p /var/lib/pterodactyl-panel/bootstrap/cache
         ${pkgs.rsync}/bin/rsync -rltD --delete --exclude '/storage' --exclude '/bootstrap/cache' ${cfg.package}/ .
 
         install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (generators.toKeyValue {
