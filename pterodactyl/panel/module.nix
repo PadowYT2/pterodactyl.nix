@@ -405,6 +405,9 @@ in {
         WorkingDirectory = "/var/lib/pterodactyl-panel";
         StateDirectory = "pterodactyl-panel";
         StateDirectoryMode = "0710";
+
+        CacheDirectory = "pterodactyl-panel";
+        CacheDirectory = "pterodactyl-panel/bootstrap";
         CacheDirectory = "pterodactyl-panel/bootstrap/cache";
         CacheDirectoryMode = "0700";
 
