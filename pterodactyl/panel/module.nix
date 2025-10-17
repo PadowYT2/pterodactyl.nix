@@ -434,8 +434,8 @@ in {
 
     systemd.services.pteroq = {
       description = "Pterodactyl Queue Worker";
-      after = ["redis.service" "pterodactyl-panel-setup.service"];
-      requires = ["redis.service" "pterodactyl-panel-setup.service"];
+      after = ["redis-pterodactyl-panel.service" "pterodactyl-panel-setup.service"];
+      requires = ["redis-pterodactyl-panel.service" "pterodactyl-panel-setup.service"];
       wantedBy = ["multi-user.target"];
 
       serviceConfig = {
@@ -449,8 +449,8 @@ in {
 
     systemd.services.pterodactyl-panel-cron = {
       description = "Pterodactyl Panel cron job";
-      after = ["redis.service" "pterodactyl-panel-setup.service"];
-      requires = ["redis.service" "pterodactyl-panel-setup.service"];
+      after = ["redis-pterodactyl-panel.service" "pterodactyl-panel-setup.service"];
+      requires = ["redis-pterodactyl-panel.service" "pterodactyl-panel-setup.service"];
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
