@@ -1,12 +1,13 @@
 {
   fetchFromGitHub,
-  php,
+  php83,
+  php83Packages,
   fetchYarnDeps,
   yarnConfigHook,
   yarnBuildHook,
   nodejs,
 }:
-php.buildComposerProject2 rec {
+php83.buildComposerProject2 rec {
   pname = "pterodactyl-panel";
   version = "1.11.11";
 
@@ -14,11 +15,15 @@ php.buildComposerProject2 rec {
     owner = "pterodactyl";
     repo = "panel";
     rev = "v${version}";
-    sha256 = "sha256-Pkko9n0RW4Lu8pc4J58+VXpIpZe+ZRfoCtoTfeDPvI8=";
+    sha256 = "sha256-Os8fTkruiUh6+ec5txhVgXPSDC2/LaCtvij7rQuWy0U=";
   };
 
   composerLock = "${src}/composer.lock";
-  vendorHash = "sha256-K6FpYGouMZnZLw7h32OvNbW45QW4qTMIoMqW85vJV+g=";
+  vendorHash = "sha256-Y0MHYIaBzBOG6IW+jegcrBbql4pxFPLI56PbO1kh0X0=";
+
+  composerNoDev = false;
+  composerNoScripts = false;
+  composerNoPlugins = false;
 
   offlineCache = fetchYarnDeps {
     yarnLock = "${src}/yarn.lock";
@@ -28,6 +33,12 @@ php.buildComposerProject2 rec {
   nativeBuildInputs = [yarnConfigHook yarnBuildHook nodejs];
   NODE_OPTIONS = "--openssl-legacy-provider";
   yarnBuildScript = "build:production";
+  dontYarnBuild = true;
+
+  postBuild = ''
+    yarn --offline ${yarnBuildScript}
+    ${php83Packages.composer}/bin/composer dump-autoload --optimize --classmap-authoritative
+  '';
 
   installPhase = ''
     runHook preInstall
