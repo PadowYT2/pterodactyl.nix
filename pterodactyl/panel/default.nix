@@ -1,13 +1,14 @@
 {
+  stdenvNoCC,
   fetchFromGitHub,
   php83,
-  php83Packages,
   fetchYarnDeps,
   yarnConfigHook,
   yarnBuildHook,
   nodejs,
+  dataDir ? "/var/lib/pterodactyl-panel",
 }:
-php83.buildComposerProject2 rec {
+stdenvNoCC.mkDerivation rec {
   pname = "pterodactyl-panel";
   version = "1.11.11";
 
@@ -18,34 +19,43 @@ php83.buildComposerProject2 rec {
     sha256 = "sha256-Os8fTkruiUh6+ec5txhVgXPSDC2/LaCtvij7rQuWy0U=";
   };
 
-  composerLock = "${src}/composer.lock";
-  vendorHash = "sha256-Y0MHYIaBzBOG6IW+jegcrBbql4pxFPLI56PbO1kh0X0=";
+  buildInputs = [php83];
+  nativeBuildInputs = [
+    nodejs
+    yarnConfigHook
+    yarnBuildHook
+    php83.composerHooks2.composerInstallHook
+  ];
 
-  composerNoDev = false;
-  composerNoScripts = false;
-  composerNoPlugins = false;
+  composerVendor = php83.mkComposerVendor {
+    inherit pname src version;
+    composerNoDev = true;
+    composerNoPlugins = true;
+    composerNoScripts = true;
+    composerStrictValidation = true;
+    strictDeps = true;
+    vendorHash = "sha256-B9BAi1E9T2rk2AifAWfAk0Lp87fUxHore8Woh368H6I=";
+  };
 
   offlineCache = fetchYarnDeps {
     yarnLock = "${src}/yarn.lock";
     hash = "sha256-Pv2/0kfOKaAMeioNU1MBdwVEMjDbk+QR8Qs1EwA5bsQ=";
   };
 
-  nativeBuildInputs = [yarnConfigHook yarnBuildHook nodejs];
-  NODE_OPTIONS = "--openssl-legacy-provider";
+  env.NODE_OPTIONS = "--openssl-legacy-provider";
   yarnBuildScript = "build:production";
   dontYarnBuild = true;
 
-  postBuild = ''
-    yarn --offline ${yarnBuildScript}
-    ${php83Packages.composer}/bin/composer dump-autoload --optimize --classmap-authoritative
+  preInstall = ''
+    yarn --offline build:production
   '';
 
-  installPhase = ''
-    runHook preInstall
-
-    mkdir -p $out
-    cp -rT . $out/
-
-    runHook postInstall
+  postInstall = ''
+    chmod -R u+w $out/share
+    mv $out/share/php/pterodactyl-panel/* $out/
+    rm -R $out/share $out/storage $out/bootstrap/cache $out/node_modules
+    ln -s ${dataDir}/storage $out/storage
+    ln -s ${dataDir}/bootstrap/cache $out/bootstrap/cache
+    ln -s ${dataDir}/.env $out/.env
   '';
 }
