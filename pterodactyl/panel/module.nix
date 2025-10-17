@@ -395,8 +395,8 @@ in {
     systemd.services.pterodactyl-panel-setup = {
       description = "Pterodactyl Panel setup";
       wantedBy = ["multi-user.target"];
-      after = ["network.target" "tmpfiles.service"] ++ optional cfg.database.createLocally "mysql.service";
-      requires = ["tmpfiles.service"] ++ optional cfg.database.createLocally "mysql.service";
+      after = ["network.target"] ++ optional cfg.database.createLocally "mysql.service";
+      requires = optional cfg.database.createLocally "mysql.service";
 
       serviceConfig = {
         Type = "oneshot";
