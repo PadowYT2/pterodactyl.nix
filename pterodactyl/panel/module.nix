@@ -6,27 +6,53 @@
 }:
 with lib; let
   cfg = config.services.pterodactyl.panel;
-  env =
+
+  secrets = lib.filter (s: s.file != null) [
     {
+      name = "APP_KEY";
+      file = cfg.app.keyFile;
+    }
+    {
+      name = "DB_PASSWORD";
+      file = cfg.database.passwordFile;
+    }
+    {
+      name = "REDIS_PASSWORD";
+      file = cfg.redis.passwordFile;
+    }
+    {
+      name = "HASHIDS_SALT";
+      file = cfg.hashids.saltFile;
+    }
+    {
+      name = "MAIL_PASSWORD";
+      file = cfg.mail.passwordFile;
+    }
+  ];
+
+  env =
+    (filterAttrs (n: v: v != null) {
       APP_NAME = cfg.app.name;
       APP_ENV = cfg.app.env;
       APP_DEBUG = cfg.app.debug;
-      APP_KEY =
-        if cfg.app.keyFile != null
-        then null
-        else cfg.app.key;
+      APP_KEY = cfg.app.key;
       APP_TIMEZONE = cfg.app.timezone;
       APP_URL = cfg.app.url;
       APP_ENVIRONMENT_ONLY = cfg.app.environmentOnly;
 
-      DB_HOST = cfg.database.host;
+      DB_CONNECTION = "mysql";
+      DB_HOST =
+        if cfg.database.createLocally
+        then "localhost"
+        else cfg.database.host;
       DB_PORT = cfg.database.port;
       DB_DATABASE = cfg.database.name;
       DB_USERNAME = cfg.database.user;
-      DB_PASSWORD =
-        if cfg.database.passwordFile != null
-        then null
-        else cfg.database.password;
+      DB_PASSWORD = cfg.database.password;
+      DB_SOCKET =
+        if cfg.database.createLocally
+        then "/run/mysqld/mysqld.sock"
+        else null;
 
       REDIS_SCHEME =
         if cfg.redis.createLocally
@@ -44,36 +70,32 @@ with lib; let
         if cfg.redis.createLocally
         then null
         else cfg.redis.port;
-      REDIS_PASSWORD =
-        if cfg.redis.passwordFile != null
-        then null
-        else cfg.redis.password;
+      REDIS_PASSWORD = cfg.redis.password;
 
       CACHE_DRIVER = cfg.cacheDriver;
       QUEUE_CONNECTION = cfg.queueConnection;
       SESSION_DRIVER = cfg.sessionDriver;
 
-      HASHIDS_SALT =
-        if cfg.hashids.saltFile != null
-        then null
-        else cfg.hashids.salt;
+      HASHIDS_SALT = cfg.hashids.salt;
       HASHIDS_LENGTH = cfg.hashids.length;
 
       MAIL_MAILER = cfg.mail.mailer;
       MAIL_HOST = cfg.mail.host;
       MAIL_PORT = cfg.mail.port;
       MAIL_USERNAME = cfg.mail.username;
-      MAIL_PASSWORD =
-        if cfg.mail.passwordFile != null
-        then null
-        else cfg.mail.password;
+      MAIL_PASSWORD = cfg.mail.password;
       MAIL_ENCRYPTION = cfg.mail.encryption;
       MAIL_FROM_ADDRESS = cfg.mail.fromAddress;
       MAIL_FROM_NAME = cfg.mail.fromName;
 
       TRUSTED_PROXIES = builtins.concatStringsSep "," cfg.trustedProxies;
       PTERODACTYL_TELEMETRY_ENABLED = cfg.telemetry.enable;
-    }
+    })
+    // (builtins.listToAttrs (map (s: {
+        name = s.name;
+        value = builtins.hashString "sha256" s.file;
+      })
+      secrets))
     // cfg.extraEnvironment;
 
   php = pkgs.php83.buildEnv {
@@ -115,7 +137,7 @@ in {
 
     group = mkOption {
       type = types.str;
-      default = "pterodactyl-panel";
+      default = config.services.nginx.group;
       description = "Group to run the panel as";
     };
 
@@ -179,7 +201,7 @@ in {
       };
       user = mkOption {
         type = types.str;
-        default = "pterodactyl";
+        default = config.services.pterodactyl.panel.user;
       };
       password = mkOption {
         type = types.nullOr types.str;
@@ -346,36 +368,104 @@ in {
       ];
     };
 
-    services.redis.servers."${cfg.redis.name}" = mkIf cfg.redis.createLocally ({
+    services.redis.servers."${cfg.redis.name}" = mkIf cfg.redis.createLocally (
+      {
         enable = true;
+        group = cfg.group;
       }
-      // optionalAttrs (cfg.redis.password != null) {
-        requirePass = cfg.redis.password;
-      }
-      // optionalAttrs (cfg.redis.passwordFile != null) {
-        requirePassFile = cfg.redis.passwordFile;
-      });
+      // optionalAttrs (cfg.redis.password != null) {requirePass = cfg.redis.password;}
+      // optionalAttrs (cfg.redis.passwordFile != null) {requirePassFile = cfg.redis.passwordFile;}
+    );
+
+    systemd.tmpfiles.rules = [
+      "d /var/lib/pterodactyl-panel/storage 0700 ${cfg.user} ${cfg.group} - -"
+      "d /var/lib/pterodactyl-panel/bootstrap 0700 ${cfg.user} ${cfg.group} - -"
+      "d /var/lib/pterodactyl-panel/storage/app 0700 ${cfg.user} ${cfg.group} - -"
+      "d /var/lib/pterodactyl-panel/storage/app/public 0700 ${cfg.user} ${cfg.group} - -"
+      "d /var/lib/pterodactyl-panel/storage/app/private 0700 ${cfg.user} ${cfg.group} - -"
+      "d /var/lib/pterodactyl-panel/storage/clockwork 0700 ${cfg.user} ${cfg.group} - -"
+      "d /var/lib/pterodactyl-panel/storage/framework 0700 ${cfg.user} ${cfg.group} - -"
+      "d /var/lib/pterodactyl-panel/storage/framework/cache 0700 ${cfg.user} ${cfg.group} - -"
+      "d /var/lib/pterodactyl-panel/storage/framework/sessions 0700 ${cfg.user} ${cfg.group} - -"
+      "d /var/lib/pterodactyl-panel/storage/framework/views 0700 ${cfg.user} ${cfg.group} - -"
+      "d /var/lib/pterodactyl-panel/storage/logs 0700 ${cfg.user} ${cfg.group} - -"
+      "d /var/lib/pterodactyl-panel/bootstrap/cache 0700 ${cfg.user} ${cfg.group} - -"
+    ];
+
+    systemd.services.pterodactyl-panel-setup = {
+      description = "Pterodactyl Panel setup";
+      wantedBy = ["multi-user.target"];
+      after = ["network.target"] ++ optional cfg.database.createLocally "mysql.service";
+      requires = optional cfg.database.createLocally "mysql.service";
+
+      serviceConfig = {
+        Type = "oneshot";
+        User = cfg.user;
+        Group = cfg.group;
+        WorkingDirectory = "/var/lib/pterodactyl-panel";
+        StateDirectory = "pterodactyl-panel";
+        StateDirectoryMode = "0710";
+      };
+
+      script = ''
+        set -eu
+        ${pkgs.rsync}/bin/rsync -rltD --delete --exclude '/storage' --exclude '/bootstrap/cache' ${cfg.package}/ .
+
+        install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (generators.toKeyValue {
+            mkKeyValue = generators.mkKeyValueDefault {
+              mkValueString = v:
+                if builtins.isString v && strings.hasInfix " " v
+                then ''"${v}"''
+                else generators.mkValueStringDefault {} v;
+            } "=";
+          }
+          env)} ./.env
+
+        ${concatMapStrings (s: ''
+            ${pkgs.replace-secret}/bin/replace-secret ${escapeShellArgs [(builtins.hashString "sha256" s.file) s.file "/var/lib/pterodactyl-panel/.env"]}
+          '')
+          secrets}
+
+        ${php}/bin/php artisan migrate --seed --force
+        ${php}/bin/php artisan optimize:clear
+        ${php}/bin/php artisan optimize
+      '';
+    };
 
     systemd.services.pteroq = {
       description = "Pterodactyl Queue Worker";
-      after = ["redis.service"];
-      requires = ["redis.service"];
+      after = ["redis.service" "pterodactyl-panel-setup.service"];
+      requires = ["redis.service" "pterodactyl-panel-setup.service"];
       wantedBy = ["multi-user.target"];
 
       serviceConfig = {
         User = cfg.user;
         Group = cfg.group;
         Restart = "always";
-        ExecStart = "${php}/bin/php ${cfg.package}/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
-        WorkingDirectory = cfg.package;
-        Environment = mapAttrsToList (n: v: "${n}=${toString v}") (filterAttrs (n: v: v != null) env);
-        EnvironmentFile = optional (cfg.extraEnvironmentFile != null) cfg.extraEnvironmentFile;
-        LoadCredential =
-          (optional (cfg.app.keyFile != null) "APP_KEY:${cfg.app.keyFile}")
-          ++ (optional (cfg.database.passwordFile != null) "DB_PASSWORD:${cfg.database.passwordFile}")
-          ++ (optional (cfg.redis.passwordFile != null) "REDIS_PASSWORD:${cfg.redis.passwordFile}")
-          ++ (optional (cfg.hashids.saltFile != null) "HASHIDS_SALT:${cfg.hashids.saltFile}")
-          ++ (optional (cfg.mail.passwordFile != null) "MAIL_PASSWORD:${cfg.mail.passwordFile}");
+        ExecStart = "${php}/bin/php artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
+        WorkingDirectory = "/var/lib/pterodactyl-panel";
+      };
+    };
+
+    systemd.services.pterodactyl-panel-cron = {
+      description = "Pterodactyl Panel cron job";
+      after = ["redis.service" "pterodactyl-panel-setup.service"];
+      requires = ["redis.service" "pterodactyl-panel-setup.service"];
+      serviceConfig = {
+        Type = "oneshot";
+        User = cfg.user;
+        Group = cfg.group;
+        WorkingDirectory = "/var/lib/pterodactyl-panel";
+        ExecStart = "${php}/bin/php artisan schedule:run";
+      };
+    };
+
+    systemd.timers.pterodactyl-panel-cron = {
+      description = "Pterodactyl Panel cron timer";
+      wantedBy = ["timers.target"];
+      timerConfig = {
+        OnCalendar = "minutely";
+        Persistent = true;
       };
     };
 
@@ -395,22 +485,13 @@ in {
     };
 
     systemd.services."phpfpm-pterodactyl-panel" = {
-      serviceConfig = {
-        Environment = mapAttrsToList (n: v: "${n}=${toString v}") (filterAttrs (n: v: v != null) env);
-        EnvironmentFile = optional (cfg.extraEnvironmentFile != null) cfg.extraEnvironmentFile;
-        LoadCredential =
-          (optional (cfg.app.keyFile != null) "APP_KEY:${cfg.app.keyFile}")
-          ++ (optional (cfg.database.passwordFile != null) "DB_PASSWORD:${cfg.database.passwordFile}")
-          ++ (optional (cfg.redis.passwordFile != null) "REDIS_PASSWORD:${cfg.redis.passwordFile}")
-          ++ (optional (cfg.hashids.saltFile != null) "HASHIDS_SALT:${cfg.hashids.saltFile}")
-          ++ (optional (cfg.mail.passwordFile != null) "MAIL_PASSWORD:${cfg.mail.passwordFile}");
-      };
+      requires = ["pterodactyl-panel-setup.service"];
     };
 
     services.nginx = {
       enable = mkDefault true;
       virtualHosts."${builtins.replaceStrings ["https://" "http://"] ["" ""] cfg.app.url}" = {
-        root = "${cfg.package}/public";
+        root = "/var/lib/pterodactyl-panel/public";
         extraConfig = ''
           index index.php;
           client_max_body_size 100m;
@@ -446,6 +527,6 @@ in {
       group = cfg.group;
       extraGroups = optionals cfg.redis.createLocally ["redis"];
     };
-    users.groups.${cfg.group} = {};
+    users.groups.pterodactyl-panel = {};
   };
 }
