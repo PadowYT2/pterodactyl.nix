@@ -405,11 +405,10 @@ in {
         WorkingDirectory = "/var/lib/pterodactyl-panel";
         StateDirectory = "pterodactyl-panel";
         StateDirectoryMode = "0710";
+        CacheDirectory = "pterodactyl-panel/bootstrap/cache";
+        CacheDirectoryMode = "0700";
 
-        CacheDirectory = "pterodactyl-panel";
-        CacheDirectoryMode = "0710";
-
-        BindPaths = [
+        BindReadWritePaths = [
           "/var/cache/pterodactyl-panel/bootstrap/cache:/var/lib/pterodactyl-panel/bootstrap/cache"
         ];
       };
