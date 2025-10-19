@@ -334,23 +334,23 @@ in {
     assertions = [
       {
         assertion = cfg.app.key == null || cfg.app.keyFile == null;
-        message = "cannot set both services.pterodactyl.panel.app.key and services.pterodactyl.panel.app.keyFile.";
+        message = "cannot set both services.pterodactyl.panel.app.key and services.pterodactyl.panel.app.keyFile";
       }
       {
         assertion = cfg.database.password == null || cfg.database.passwordFile == null;
-        message = "cannot set both services.pterodactyl.panel.database.password and services.pterodactyl.panel.database.passwordFile.";
+        message = "cannot set both services.pterodactyl.panel.database.password and services.pterodactyl.panel.database.passwordFile";
       }
       {
         assertion = cfg.redis.password == null || cfg.redis.passwordFile == null;
-        message = "cannot set both services.pterodactyl.panel.redis.password and services.pterodactyl.panel.redis.passwordFile.";
+        message = "cannot set both services.pterodactyl.panel.redis.password and services.pterodactyl.panel.redis.passwordFile";
       }
       {
         assertion = cfg.hashids.salt == null || cfg.hashids.saltFile == null;
-        message = "cannot set both services.pterodactyl.panel.hashids.salt and services.pterodactyl.panel.hashids.saltFile.";
+        message = "cannot set both services.pterodactyl.panel.hashids.salt and services.pterodactyl.panel.hashids.saltFile";
       }
       {
         assertion = cfg.mail.password == null || cfg.mail.passwordFile == null;
-        message = "cannot set both services.pterodactyl.panel.mail.password and services.pterodactyl.panel.mail.passwordFile.";
+        message = "cannot set both services.pterodactyl.panel.mail.password and services.pterodactyl.panel.mail.passwordFile";
       }
     ];
 
