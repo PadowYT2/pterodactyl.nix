@@ -137,8 +137,14 @@ in {
 
     group = mkOption {
       type = types.str;
-      default = config.services.nginx.group;
+      default = if cfg.enableNginx then config.services.nginx.group else "pterodactyl-panel";
       description = "Group to run the panel as";
+    };
+
+    enableNginx = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Whether to enable Nginx and PHP-FPM";
     };
 
     app = {
@@ -408,8 +414,8 @@ in {
 
     systemd.services.pterodactyl-panel-setup = {
       description = "Pterodactyl Panel setup";
-      requiredBy = ["phpfpm-pterodactyl-panel.service"];
-      before = ["phpfpm-pterodactyl-panel.service"];
+      requiredBy = optional cfg.enableNginx "phpfpm-pterodactyl-panel.service";
+      before = optional cfg.enableNginx "phpfpm-pterodactyl-panel.service";
       after = ["mysql.service"];
       restartTriggers = [cfg.package];
 
@@ -491,7 +497,7 @@ in {
       };
     };
 
-    services.phpfpm.pools.pterodactyl-panel = {
+    services.phpfpm.pools.pterodactyl-panel = mkIf cfg.enableNginx {
       user = cfg.user;
       group = cfg.group;
       phpPackage = php;
@@ -506,11 +512,11 @@ in {
       };
     };
 
-    systemd.services."phpfpm-pterodactyl-panel" = {
+    systemd.services."phpfpm-pterodactyl-panel" = mkIf cfg.enableNginx {
       requires = ["pterodactyl-panel-setup.service"];
     };
 
-    services.nginx = {
+    services.nginx = mkIf cfg.enableNginx {
       enable = true;
       recommendedTlsSettings = mkDefault true;
       recommendedOptimisation = mkDefault true;
