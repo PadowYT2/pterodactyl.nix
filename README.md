@@ -52,6 +52,33 @@ In your `configuration.nix`:
 }
 ```
 
+#### Caddy with FrankenPHP
+
+Using Caddy with FrankenPHP is much performant and better than Nginx and PHP-FPM.
+
+Here is an example to put in your `configuration.nix`:
+
+```nix
+{
+  services.pterodactyl.panel = {
+    enable = true;
+    enableNginx = false;
+    app.url = "https://panel.example.com";
+  };
+
+  services.caddy = {
+    enable = true;
+    package = pkgs.frankenphp;
+    virtualHosts = {
+      "panel.example.com".extraConfig = ''
+        root * ${config.services.pterodactyl.panel.package}/public
+        php_server
+      '';
+    };
+  };
+}
+```
+
 ### Wings
 
 In your `configuration.nix`:
