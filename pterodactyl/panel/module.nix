@@ -129,6 +129,12 @@ in {
       description = "Pterodactyl Panel package to use";
     };
 
+    phpPackage = mkOption {
+      type = types.package;
+      readOnly = true;
+      default = php;
+    };
+
     user = mkOption {
       type = types.str;
       default = "pterodactyl-panel";
@@ -401,14 +407,14 @@ in {
         d = {
           user = cfg.user;
           group = cfg.group;
-          mode = "0700";
+          mode = "0770";
         };
       })
       // {
         "/var/lib/pterodactyl-panel".d = {
           user = cfg.user;
           group = cfg.group;
-          mode = "0710";
+          mode = "0750";
         };
       };
 
@@ -449,7 +455,6 @@ in {
 
         ${php}/bin/php ${cfg.package}/artisan migrate --seed --force
         ${php}/bin/php ${cfg.package}/artisan optimize:clear
-        ${php}/bin/php ${cfg.package}/artisan optimize
       '';
     };
 
