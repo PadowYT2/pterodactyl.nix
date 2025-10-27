@@ -6,17 +6,29 @@
 }:
 with lib; let
   cfg = config.services.pterodactyl.wings;
+
+  secrets = lib.filter (s: s.file != null) [
+    {
+      name = "token";
+      file = cfg.tokenFile;
+    }
+    {
+      name = "token_id";
+      file = cfg.tokenIdFile;
+    }
+  ];
+
   mainConfig = {
     debug = cfg.debug;
     app_name = cfg.appName;
     uuid = cfg.uuid;
     token_id =
       if cfg.tokenIdFile != null
-      then null
+      then builtins.hashString "sha256" cfg.tokenIdFile
       else cfg.tokenId;
     token =
       if cfg.tokenFile != null
-      then null
+      then builtins.hashString "sha256" cfg.tokenFile
       else cfg.token;
     api = {
       host = cfg.api.host;
@@ -251,43 +263,16 @@ in {
         message = "services.pterodactyl.wings.remote must be set";
       }
       {
-        assertion = cfg.tokenId != null || cfg.tokenIdFile != null;
-        message = "cannot set both services.pterodactyl.wings.tokenId and services.pterodactyl.wings.tokenIdFile";
+        assertion = (cfg.tokenId != null && cfg.tokenIdFile == null) || (cfg.tokenId == null && cfg.tokenIdFile != null);
+        message = "cannot set both or neither services.pterodactyl.wings.tokenId and services.pterodactyl.wings.tokenIdFile";
       }
       {
-        assertion = cfg.token != null || cfg.tokenFile != null;
-        message = "cannot set both services.pterodactyl.wings.token and services.pterodactyl.wings.tokenFile";
+        assertion = (cfg.token != null && cfg.tokenFile == null) || (cfg.token == null && cfg.tokenFile != null);
+        message = "cannot set both or neither services.pterodactyl.wings.token and services.pterodactyl.wings.tokenFile";
       }
     ];
 
     networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [cfg.api.port cfg.system.sftp.port];
-
-    environment.etc."pterodactyl/config.yml" = {
-      source = wingsConfig;
-      mode = "0644";
-    };
-
-    systemd.services.pterodactyl-wings = {
-      description = "Pterodactyl Wings service";
-      after = ["network.target" "docker.service"];
-      requires = ["docker.service"];
-      partOf = ["docker.service"];
-      wantedBy = ["multi-user.target"];
-
-      serviceConfig = {
-        ExecStart = "${cfg.package}/bin/wings --config /etc/pterodactyl/config.yml";
-        User = cfg.user;
-        Group = cfg.group;
-        Restart = "on-failure";
-        StateDirectory = "pterodactyl";
-        LogsDirectory = "pterodactyl";
-        CacheDirectory = "pterodactyl";
-        RuntimeDirectory = "wings";
-        LoadCredential =
-          (optional (cfg.tokenFile != null) "WINGS_TOKEN:${cfg.tokenFile}")
-          ++ (optional (cfg.tokenIdFile != null) "WINGS_TOKEN_ID:${cfg.tokenIdFile}");
-      };
-    };
 
     systemd.tmpfiles.settings."10-pterodactyl-wings" =
       lib.attrsets.genAttrs
@@ -302,11 +287,68 @@ in {
           group = cfg.group;
           mode = "0755";
         };
-      });
+      })
+      // {
+        "${cfg.rootDir}".d = {
+          user = cfg.user;
+          group = cfg.group;
+          mode = "0750";
+        };
+      };
+
+    systemd.services.pterodactyl-wings-setup = {
+      description = "Pterodactyl Wings setup";
+      before = ["pterodactyl-wings.service"];
+      requiredBy = ["pterodactyl-wings.service"];
+
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        User = cfg.user;
+        Group = cfg.group;
+        StateDirectory = "pterodactyl";
+      };
+
+      script = ''
+        set -eu
+
+        install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${wingsConfig} /var/lib/pterodactyl/config.yml
+
+        ${concatMapStrings (s: ''
+            ${pkgs.replace-secret}/bin/replace-secret ${escapeShellArgs [(builtins.hashString "sha256" s.file) s.file "/var/lib/pterodactyl/config.yml"]}
+          '')
+          secrets}
+      '';
+    };
+
+    systemd.services.pterodactyl-wings = {
+      description = "Pterodactyl Wings service";
+      after = ["network.target" "docker.service" "pterodactyl-wings-setup.service"];
+      requires = ["docker.service" "pterodactyl-wings-setup.service"];
+      partOf = ["docker.service"];
+      wantedBy = ["multi-user.target"];
+
+      serviceConfig = {
+        ExecStart = "${cfg.package}/bin/wings --config /var/lib/pterodactyl/config.yml";
+        User = cfg.user;
+        Group = cfg.group;
+        Restart = "on-failure";
+        StateDirectory = "pterodactyl";
+        LogsDirectory = "pterodactyl";
+        CacheDirectory = "pterodactyl";
+        RuntimeDirectory = "wings";
+        ReadWritePaths = [
+          cfg.rootDir
+          cfg.logDir
+          cfg.tmpDir
+        ];
+      };
+    };
 
     users.users.${cfg.user} = {
       isSystemUser = true;
       group = cfg.group;
+      home = cfg.rootDir;
       extraGroups = ["docker"];
     };
     users.groups.${cfg.group} = {};
