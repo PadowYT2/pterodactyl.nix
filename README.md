@@ -60,15 +60,11 @@ Here is an example to put in your `configuration.nix`:
 
 ```nix
 {
-  services.pterodactyl.panel = {
-    enable = true;
-    enableNginx = false;
-    app.url = "https://panel.example.com";
-  };
-
   services.caddy = {
     enable = true;
-    package = pkgs.frankenphp;
+    package = pkgs.frankenphp.override {
+      php = config.services.pterodactyl.panel.phpPackage;
+    };
     virtualHosts = {
       "panel.example.com".extraConfig = ''
         root * ${config.services.pterodactyl.panel.package}/public
@@ -76,6 +72,16 @@ Here is an example to put in your `configuration.nix`:
       '';
     };
   };
+
+  services.pterodactyl.panel = {
+    enable = true;
+    enableNginx = false;
+    user = "caddy";
+    group = "caddy";
+    app.url = "https://panel.example.com";
+  };
+
+  users.users.caddy.extraGroups = ["redis"];
 }
 ```
 

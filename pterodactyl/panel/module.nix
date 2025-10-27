@@ -562,12 +562,17 @@ in {
       };
     };
 
-    users.users.${cfg.user} = {
-      isSystemUser = true;
-      group = cfg.group;
-      home = "/var/lib/pterodactyl-panel";
-      extraGroups = optionals cfg.redis.createLocally ["redis"];
+    users.users = mkIf (cfg.user == "pterodactyl-panel") {
+      ${cfg.user} = {
+        isSystemUser = true;
+        group = cfg.group;
+        home = "/var/lib/pterodactyl-panel";
+        extraGroups = optionals cfg.redis.createLocally ["redis"];
+      };
     };
-    users.groups.pterodactyl-panel = {};
+
+    users.groups = mkIf (cfg.group == "pterodactyl-panel") {
+      ${cfg.group} = {};
+    };
   };
 }
