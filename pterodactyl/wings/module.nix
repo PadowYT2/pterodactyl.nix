@@ -59,7 +59,7 @@ with lib; let
     ignore_panel_config_updates = true;
   };
 
-  wingsConfig = pkgs.formats.yaml {}.generate "config.yml" (recursiveUpdate (recursiveUpdate mainConfig cfg.extraConfig) (
+  wingsConfig = (pkgs.formats.yaml {}).generate "config.yml" (recursiveUpdate (recursiveUpdate mainConfig cfg.extraConfig) (
     if cfg.extraConfigFile != null
     then builtins.fromYAML (builtins.readFile cfg.extraConfigFile)
     else {}
