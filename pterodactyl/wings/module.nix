@@ -264,8 +264,6 @@ in {
 
     environment.etc."pterodactyl/config.yml" = {
       source = wingsConfig;
-      owner = cfg.user;
-      group = cfg.group;
       mode = "0600";
     };
 
