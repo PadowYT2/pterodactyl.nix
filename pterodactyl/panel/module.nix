@@ -143,7 +143,10 @@ in {
 
     group = mkOption {
       type = types.str;
-      default = if cfg.enableNginx then config.services.nginx.group else "pterodactyl-panel";
+      default =
+        if cfg.enableNginx
+        then config.services.nginx.group
+        else "pterodactyl-panel";
       description = "Group to run the panel as";
     };
 

@@ -7,27 +7,27 @@
 with lib; let
   cfg = config.services.pterodactyl.wings;
   mainConfig = {
-    debug = cfg.settings.debug;
-    app_name = cfg.settings.appName;
-    uuid = cfg.settings.uuid;
+    debug = cfg.debug;
+    app_name = cfg.appName;
+    uuid = cfg.uuid;
     token_id =
-      if cfg.settings.tokenIdFile != null
+      if cfg.tokenIdFile != null
       then null
-      else cfg.settings.tokenId;
+      else cfg.tokenId;
     token =
-      if cfg.settings.tokenFile != null
+      if cfg.tokenFile != null
       then null
-      else cfg.settings.token;
+      else cfg.token;
     api = {
-      host = cfg.settings.api.host;
-      port = cfg.settings.api.port;
+      host = cfg.api.host;
+      port = cfg.api.port;
       ssl = {
-        enabled = cfg.settings.api.ssl.enable;
-        cert = cfg.settings.api.ssl.certFile;
-        key = cfg.settings.api.ssl.keyFile;
+        enabled = cfg.api.ssl.enable;
+        cert = cfg.api.ssl.certFile;
+        key = cfg.api.ssl.keyFile;
       };
-      upload_limit = cfg.settings.api.uploadLimit;
-      trusted_proxies = cfg.settings.api.trustedProxies;
+      upload_limit = cfg.api.uploadLimit;
+      trusted_proxies = cfg.api.trustedProxies;
     };
     system = {
       root_directory = cfg.rootDir;
@@ -42,26 +42,26 @@ with lib; let
         gid = config.users.groups.${cfg.group}.gid;
       };
       sftp = {
-        bind_address = cfg.settings.system.sftp.host;
-        bind_port = cfg.settings.system.sftp.port;
+        bind_address = cfg.system.sftp.host;
+        bind_port = cfg.system.sftp.port;
       };
       docker = {
-        tmpfs_size = cfg.settings.docker.tmpfsSize;
-        container_pid_limit = cfg.settings.docker.containerPidLimit;
+        tmpfs_size = cfg.docker.tmpfsSize;
+        container_pid_limit = cfg.docker.containerPidLimit;
         installer_limits = {
-          memory = cfg.settings.docker.installerLimits.memory;
-          cpu = cfg.settings.docker.installerLimits.cpu;
+          memory = cfg.docker.installerLimits.memory;
+          cpu = cfg.docker.installerLimits.cpu;
         };
       };
       passwd.directory = "${cfg.runDir}/etc";
     };
-    remote = cfg.settings.remote;
+    remote = cfg.remote;
     ignore_panel_config_updates = true;
   };
 
-  wingsConfig = pkgs.formats.yaml {}.generate "config.yml" (recursiveUpdate (recursiveUpdate mainConfig cfg.settings.extraConfig) (
-    if cfg.settings.extraConfigFile != null
-    then builtins.fromYAML (builtins.readFile cfg.settings.extraConfigFile)
+  wingsConfig = pkgs.formats.yaml {}.generate "config.yml" (recursiveUpdate (recursiveUpdate mainConfig cfg.extraConfig) (
+    if cfg.extraConfigFile != null
+    then builtins.fromYAML (builtins.readFile cfg.extraConfigFile)
     else {}
   ));
 in {
@@ -113,128 +113,126 @@ in {
       default = "/run/wings";
     };
 
-    settings = {
-      debug = mkOption {
-        type = types.bool;
-        default = false;
-      };
+    debug = mkOption {
+      type = types.bool;
+      default = false;
+    };
 
-      appName = mkOption {
+    appName = mkOption {
+      type = types.str;
+      default = "Pterodactyl";
+    };
+
+    uuid = mkOption {
+      type = types.str;
+    };
+
+    tokenId = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+    };
+
+    tokenIdFile = mkOption {
+      type = types.nullOr types.path;
+      default = null;
+    };
+
+    token = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+    };
+
+    tokenFile = mkOption {
+      type = types.nullOr types.path;
+      default = null;
+    };
+
+    remote = mkOption {
+      type = types.str;
+    };
+
+    api = {
+      host = mkOption {
         type = types.str;
-        default = "Pterodactyl";
+        default = "0.0.0.0";
       };
 
-      uuid = mkOption {
-        type = types.str;
+      port = mkOption {
+        type = types.port;
+        default = 8080;
       };
 
-      tokenId = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-      };
-
-      tokenIdFile = mkOption {
-        type = types.nullOr types.path;
-        default = null;
-      };
-
-      token = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-      };
-
-      tokenFile = mkOption {
-        type = types.nullOr types.path;
-        default = null;
-      };
-
-      remote = mkOption {
-        type = types.str;
-      };
-
-      api = {
-        host = mkOption {
-          type = types.str;
-          default = "0.0.0.0";
+      ssl = {
+        enable = mkOption {
+          type = types.bool;
+          default = false;
         };
 
-        port = mkOption {
-          type = types.port;
-          default = 8080;
+        certFile = mkOption {
+          type = types.nullOr types.path;
+          default = null;
         };
 
-        ssl = {
-          enable = mkOption {
-            type = types.bool;
-            default = false;
-          };
-
-          certFile = mkOption {
-            type = types.nullOr types.path;
-            default = null;
-          };
-
-          keyFile = mkOption {
-            type = types.nullOr types.path;
-            default = null;
-          };
+        keyFile = mkOption {
+          type = types.nullOr types.path;
+          default = null;
         };
+      };
 
-        uploadLimit = mkOption {
+      uploadLimit = mkOption {
+        type = types.int;
+        default = 100;
+      };
+
+      trustedProxies = mkOption {
+        type = types.listOf types.str;
+        default = [];
+      };
+    };
+
+    system.sftp = {
+      host = mkOption {
+        type = types.str;
+        default = "0.0.0.0";
+      };
+
+      port = mkOption {
+        type = types.port;
+        default = 2022;
+      };
+    };
+
+    docker = {
+      tmpfsSize = mkOption {
+        type = types.int;
+        default = 100;
+      };
+
+      containerPidLimit = mkOption {
+        type = types.int;
+        default = 512;
+      };
+
+      installerLimits = {
+        memory = mkOption {
+          type = types.int;
+          default = 1024;
+        };
+        cpu = mkOption {
           type = types.int;
           default = 100;
         };
-
-        trustedProxies = mkOption {
-          type = types.listOf types.str;
-          default = [];
-        };
       };
+    };
 
-      system.sftp = {
-        host = mkOption {
-          type = types.str;
-          default = "0.0.0.0";
-        };
+    extraConfig = mkOption {
+      type = types.attrsOf types.anything;
+      default = {};
+    };
 
-        port = mkOption {
-          type = types.port;
-          default = 2022;
-        };
-      };
-
-      docker = {
-        tmpfsSize = mkOption {
-          type = types.int;
-          default = 100;
-        };
-
-        containerPidLimit = mkOption {
-          type = types.int;
-          default = 512;
-        };
-
-        installerLimits = {
-          memory = mkOption {
-            type = types.int;
-            default = 1024;
-          };
-          cpu = mkOption {
-            type = types.int;
-            default = 100;
-          };
-        };
-      };
-
-      extraConfig = mkOption {
-        type = types.attrsOf types.anything;
-        default = {};
-      };
-
-      extraConfigFile = mkOption {
-        type = types.nullOr types.path;
-        default = null;
-      };
+    extraConfigFile = mkOption {
+      type = types.nullOr types.path;
+      default = null;
     };
   };
 
@@ -245,24 +243,24 @@ in {
         message = "services.pterodactyl.wings requires virtualisation.docker to be enabled";
       }
       {
-        assertion = cfg.settings.uuid != "";
-        message = "services.pterodactyl.wings.settings.uuid must be set";
+        assertion = cfg.uuid != "";
+        message = "services.pterodactyl.wings.uuid must be set";
       }
       {
-        assertion = cfg.settings.remote != "";
-        message = "services.pterodactyl.wings.settings.remote must be set";
+        assertion = cfg.remote != "";
+        message = "services.pterodactyl.wings.remote must be set";
       }
       {
-        assertion = cfg.settings.tokenId != null || cfg.settings.tokenIdFile != null;
-        message = "cannot set both services.pterodactyl.wings.settings.tokenId and services.pterodactyl.wings.settings.tokenIdFile";
+        assertion = cfg.tokenId != null || cfg.tokenIdFile != null;
+        message = "cannot set both services.pterodactyl.wings.tokenId and services.pterodactyl.wings.tokenIdFile";
       }
       {
-        assertion = cfg.settings.token != null || cfg.settings.tokenFile != null;
-        message = "cannot set both services.pterodactyl.wings.settings.token and services.pterodactyl.wings.settings.tokenFile";
+        assertion = cfg.token != null || cfg.tokenFile != null;
+        message = "cannot set both services.pterodactyl.wings.token and services.pterodactyl.wings.tokenFile";
       }
     ];
 
-    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [cfg.settings.api.port cfg.settings.system.sftp.port];
+    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [cfg.api.port cfg.system.sftp.port];
 
     environment.etc."pterodactyl/config.yml" = {
       source = wingsConfig;
@@ -288,16 +286,25 @@ in {
         CacheDirectory = "pterodactyl";
         RuntimeDirectory = "wings";
         LoadCredential =
-          (optional (cfg.settings.tokenFile != null) "WINGS_TOKEN:${cfg.settings.tokenFile}")
-          ++ (optional (cfg.settings.tokenIdFile != null) "WINGS_TOKEN_ID:${cfg.settings.tokenIdFile}");
+          (optional (cfg.tokenFile != null) "WINGS_TOKEN:${cfg.tokenFile}")
+          ++ (optional (cfg.tokenIdFile != null) "WINGS_TOKEN_ID:${cfg.tokenIdFile}");
       };
     };
 
-    systemd.tmpfiles.rules = [
-      "d ${cfg.rootDir}/volumes 0755 ${cfg.user} ${cfg.group} -"
-      "d ${cfg.rootDir}/archives 0755 ${cfg.user} ${cfg.group} -"
-      "d ${cfg.rootDir}/backups 0755 ${cfg.user} ${cfg.group} -"
-    ];
+    systemd.tmpfiles.settings."10-pterodactyl-wings" =
+      lib.attrsets.genAttrs
+      [
+        "${cfg.rootDir}/volumes"
+        "${cfg.rootDir}/archives"
+        "${cfg.rootDir}/backups"
+      ]
+      (n: {
+        d = {
+          user = cfg.user;
+          group = cfg.group;
+          mode = "0755";
+        };
+      });
 
     users.users.${cfg.user} = {
       isSystemUser = true;

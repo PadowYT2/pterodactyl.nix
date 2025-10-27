@@ -94,15 +94,13 @@ In your `configuration.nix`:
   services.pterodactyl.wings = {
     enable = true;
     openFirewall = true;
-    settings = {
-      uuid = "your-node-uuid";
-      remote = "https://panel.example.com";
-      tokenIdFile = "/path/to/token/id";
-      tokenFile = "/path/to/token";
-      api.ssl.enable = true;
-      api.ssl.certFile = "/path/to/cert";
-      api.ssl.keyFile = "/path/to/key";
-    };
+    uuid = "your-node-uuid";
+    remote = "https://panel.example.com";
+    tokenIdFile = "/path/to/token/id";
+    tokenFile = "/path/to/token";
+    api.ssl.enable = true;
+    api.ssl.certFile = "/path/to/cert";
+    api.ssl.keyFile = "/path/to/key";
   };
 
   virtualisation.docker.enable = true;
