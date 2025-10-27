@@ -264,7 +264,7 @@ in {
 
     environment.etc."pterodactyl/config.yml" = {
       source = wingsConfig;
-      mode = "0600";
+      mode = "0644";
     };
 
     systemd.services.pterodactyl-wings = {
