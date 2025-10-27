@@ -5,7 +5,7 @@
   ...
 }:
 with lib; let
-  cfg = config.programs.pterodactyl.wings;
+  cfg = config.services.pterodactyl.wings;
   mainConfig = {
     debug = cfg.settings.debug;
     app_name = cfg.settings.appName;
@@ -65,7 +65,7 @@ with lib; let
     else {}
   ));
 in {
-  options.programs.pterodactyl.wings = {
+  options.services.pterodactyl.wings = {
     enable = mkEnableOption "Pterodactyl Wings service";
 
     package = mkOption {
@@ -242,23 +242,23 @@ in {
     assertions = [
       {
         assertion = config.virtualisation.docker.enable;
-        message = "programs.pterodactyl.wings requires virtualisation.docker to be enabled";
+        message = "services.pterodactyl.wings requires virtualisation.docker to be enabled";
       }
       {
         assertion = cfg.settings.uuid != "";
-        message = "programs.pterodactyl.wings.settings.uuid must be set";
+        message = "services.pterodactyl.wings.settings.uuid must be set";
       }
       {
         assertion = cfg.settings.remote != "";
-        message = "programs.pterodactyl.wings.settings.remote must be set";
+        message = "services.pterodactyl.wings.settings.remote must be set";
       }
       {
         assertion = cfg.settings.tokenId != null || cfg.settings.tokenIdFile != null;
-        message = "cannot set both programs.pterodactyl.wings.settings.tokenId and programs.pterodactyl.wings.settings.tokenIdFile";
+        message = "cannot set both services.pterodactyl.wings.settings.tokenId and services.pterodactyl.wings.settings.tokenIdFile";
       }
       {
         assertion = cfg.settings.token != null || cfg.settings.tokenFile != null;
-        message = "cannot set both programs.pterodactyl.wings.settings.token and programs.pterodactyl.wings.settings.tokenFile";
+        message = "cannot set both services.pterodactyl.wings.settings.token and services.pterodactyl.wings.settings.tokenFile";
       }
     ];
 

@@ -91,7 +91,7 @@ In your `configuration.nix`:
 
 ```nix
 {
-  programs.pterodactyl.wings = {
+  services.pterodactyl.wings = {
     enable = true;
     openFirewall = true;
     settings = {
