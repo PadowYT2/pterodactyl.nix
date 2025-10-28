@@ -1,4 +1,5 @@
 {
+  lib,
   buildGoModule,
   fetchFromGitHub,
 }:
@@ -21,4 +22,12 @@ buildGoModule rec {
     "-w"
     "-X github.com/pterodactyl/wings/system.Version=${version}"
   ];
+
+  meta = {
+    description = "The server control plane for Pterodactyl Panel. Written from the ground-up with security, speed, and stability in mind.";
+    homepage = "https://pterodactyl.io";
+    changelog = "https://github.com/pterodactyl/wings/releases/tag/v${version}";
+    license = lib.licenses.mit;
+    platforms = lib.platforms.linux;
+  };
 }

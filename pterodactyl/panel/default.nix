@@ -1,4 +1,5 @@
 {
+  lib,
   stdenvNoCC,
   fetchFromGitHub,
   php83,
@@ -53,9 +54,16 @@ stdenvNoCC.mkDerivation rec {
   postInstall = ''
     chmod -R u+w $out/share
     mv $out/share/php/pterodactyl-panel/* $out/
-    rm -R $out/share $out/storage $out/bootstrap/cache $out/node_modules
+    rm -rf $out/share $out/storage $out/bootstrap/cache $out/node_modules
     ln -s ${dataDir}/storage $out/storage
     ln -s ${dataDir}/bootstrap/cache $out/bootstrap/cache
     ln -s ${dataDir}/.env $out/.env
   '';
+
+  meta = {
+    description = "Pterodactyl® is a free, open-source game server management panel built with PHP, React, and Go. Designed with security in mind, Pterodactyl runs all game servers in isolated Docker containers while exposing a beautiful and intuitive UI to end users.";
+    homepage = "https://pterodactyl.io";
+    changelog = "https://github.com/pterodactyl/panel/releases/tag/v${version}";
+    license = lib.licenses.mit;
+  };
 }
