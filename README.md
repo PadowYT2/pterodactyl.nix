@@ -78,6 +78,7 @@ Here is an example to put in your `configuration.nix`:
     enableNginx = false;
     user = "caddy";
     group = "caddy";
+    database.user = "caddy";
     app.url = "https://panel.example.com";
   };
 
