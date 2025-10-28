@@ -342,6 +342,7 @@ in {
           cfg.logDir
           cfg.tmpDir
         ];
+        AmbientCapabilities = "CAP_CHOWN";
       };
     };
 
