@@ -60,7 +60,7 @@
     ignore_panel_config_updates = true;
   };
 
-  wingsConfig = (pkgs.formats.yaml {}).generate "config.yml" (lib.recursiveUpdate mainConfig cfg.extraConfig);
+  wingsConfigFile = (pkgs.formats.yaml {}).generate "config.yml" (lib.recursiveUpdate mainConfig cfg.extraConfig);
 in {
   options.services.pterodactyl.wings = {
     enable = lib.mkEnableOption "Pterodactyl Wings service";
@@ -75,39 +75,39 @@ in {
     user = lib.mkOption {
       type = lib.types.str;
       default = "pterodactyl-wings";
-      description = "User to run wings as";
+      description = "User to run Wings as";
     };
 
     group = lib.mkOption {
       type = lib.types.str;
       default = "pterodactyl-wings";
-      description = "Group to run wings as";
+      description = "Group to run Wings as";
     };
 
     openFirewall = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = "Whether to open the wings API and SFTP ports in the firewall";
+      description = "Whether to open the Wings API and SFTP ports in the firewall";
     };
 
     rootDir = lib.mkOption {
       type = lib.types.path;
-      default = "/var/lib/pterodactyl";
+      default = "/var/lib/pterodactyl-wings";
     };
 
     logDir = lib.mkOption {
       type = lib.types.path;
-      default = "/var/log/pterodactyl";
+      default = "/var/log/pterodactyl-wings";
     };
 
     tmpDir = lib.mkOption {
       type = lib.types.path;
-      default = "/var/cache/pterodactyl";
+      default = "/var/cache/pterodactyl-wings";
     };
 
     runDir = lib.mkOption {
       type = lib.types.path;
-      default = "/run/wings";
+      default = "/run/pterodactyl-wings";
     };
 
     debug = lib.mkOption {
@@ -305,20 +305,21 @@ in {
         RemainAfterExit = true;
         User = cfg.user;
         Group = cfg.group;
-        StateDirectory = "pterodactyl";
+        StateDirectory = "pterodactyl-wings";
+        ReadWritePaths = ["${cfg.rootDir}"];
       };
 
       script = ''
         set -eu
 
-        install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${wingsConfig} /var/lib/pterodactyl/config.yml
+        install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${wingsConfigFile} ${cfg.rootDir}/config.yml
 
         ${lib.optionalString (cfg.tokenIdFile != null) ''
-          ${pkgs.replace-secret}/bin/replace-secret '@TOKEN_ID@' ${lib.escapeShellArg cfg.tokenIdFile} /var/lib/pterodactyl/config.yml
+          ${pkgs.replace-secret}/bin/replace-secret '@TOKEN_ID@' ${lib.escapeShellArg cfg.tokenIdFile} ${cfg.rootDir}/config.yml
         ''}
 
         ${lib.optionalString (cfg.tokenFile != null) ''
-          ${pkgs.replace-secret}/bin/replace-secret '@TOKEN@' ${lib.escapeShellArg cfg.tokenFile} /var/lib/pterodactyl/config.yml
+          ${pkgs.replace-secret}/bin/replace-secret '@TOKEN@' ${lib.escapeShellArg cfg.tokenFile} ${cfg.rootDir}/config.yml
         ''}
       '';
     };
@@ -332,14 +333,14 @@ in {
       wantedBy = ["multi-user.target"];
 
       serviceConfig = {
-        ExecStart = "${cfg.package}/bin/wings --config /var/lib/pterodactyl/config.yml";
+        ExecStart = "${cfg.package}/bin/wings --config ${cfg.rootDir}/config.yml";
         User = cfg.user;
         Group = cfg.group;
         Restart = "on-failure";
-        StateDirectory = "pterodactyl";
-        LogsDirectory = "pterodactyl";
-        CacheDirectory = "pterodactyl";
-        RuntimeDirectory = "wings";
+        StateDirectory = "pterodactyl-wings";
+        LogsDirectory = "pterodactyl-wings";
+        CacheDirectory = "pterodactyl-wings";
+        RuntimeDirectory = "pterodactyl-wings";
         ReadWritePaths = [
           cfg.rootDir
           cfg.logDir
@@ -350,13 +351,17 @@ in {
       };
     };
 
-    users.users.${cfg.user} = {
-      isSystemUser = true;
-      group = cfg.group;
-      home = cfg.rootDir;
-      extraGroups = ["docker"];
+    users.users = lib.mkIf (cfg.user == "pterodactyl-wings") {
+      ${cfg.user} = {
+        isSystemUser = true;
+        group = cfg.group;
+        home = cfg.rootDir;
+        extraGroups = ["docker"];
+      };
     };
 
-    users.groups.${cfg.group} = {};
+    users.groups = lib.mkIf (cfg.group == "pterodactyl-wings") {
+      ${cfg.group} = {};
+    };
   };
 }
