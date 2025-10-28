@@ -66,6 +66,7 @@ with lib; let
         };
       };
       passwd.directory = "${cfg.runDir}/etc";
+      use_openat2 = false;
     };
     remote = cfg.remote;
     ignore_panel_config_updates = true;
