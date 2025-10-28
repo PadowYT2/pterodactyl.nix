@@ -279,6 +279,7 @@ in {
       lib.attrsets.genAttrs
       [
         "${cfg.rootDir}/volumes"
+        "${cfg.rootDir}/volumes/.sftp"
         "${cfg.rootDir}/archives"
         "${cfg.rootDir}/backups"
       ]
@@ -294,6 +295,16 @@ in {
           user = cfg.user;
           group = cfg.group;
           mode = "0750";
+        };
+        "${cfg.rootDir}/wings.db".z = {
+          user = cfg.user;
+          group = cfg.group;
+          mode = "0644";
+        };
+        "${cfg.rootDir}/states.json".z = {
+          user = cfg.user;
+          group = cfg.group;
+          mode = "0644";
         };
       };
 
