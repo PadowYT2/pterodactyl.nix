@@ -3,39 +3,18 @@
   lib,
   pkgs,
   ...
-}:
-with lib; let
+}: let
   cfg = config.services.pterodactyl.panel;
 
-  secrets = lib.filter (s: s.file != null) [
-    {
-      name = "APP_KEY";
-      file = cfg.app.keyFile;
-    }
-    {
-      name = "DB_PASSWORD";
-      file = cfg.database.passwordFile;
-    }
-    {
-      name = "REDIS_PASSWORD";
-      file = cfg.redis.passwordFile;
-    }
-    {
-      name = "HASHIDS_SALT";
-      file = cfg.hashids.saltFile;
-    }
-    {
-      name = "MAIL_PASSWORD";
-      file = cfg.mail.passwordFile;
-    }
-  ];
-
   env =
-    (filterAttrs (n: v: v != null) {
+    (lib.filterAttrs (n: v: v != null) {
       APP_NAME = cfg.app.name;
       APP_ENV = cfg.app.env;
       APP_DEBUG = cfg.app.debug;
-      APP_KEY = cfg.app.key;
+      APP_KEY =
+        if cfg.app.keyFile != null
+        then "@APP_KEY@"
+        else cfg.app.key;
       APP_TIMEZONE = cfg.app.timezone;
       APP_URL = cfg.app.url;
       APP_ENVIRONMENT_ONLY = cfg.app.environmentOnly;
@@ -48,7 +27,10 @@ with lib; let
       DB_PORT = cfg.database.port;
       DB_DATABASE = cfg.database.name;
       DB_USERNAME = cfg.database.user;
-      DB_PASSWORD = cfg.database.password;
+      DB_PASSWORD =
+        if cfg.database.passwordFile != null
+        then "@DB_PASSWORD@"
+        else cfg.database.password;
       DB_SOCKET =
         if cfg.database.createLocally
         then "/run/mysqld/mysqld.sock"
@@ -70,20 +52,29 @@ with lib; let
         if cfg.redis.createLocally
         then null
         else cfg.redis.port;
-      REDIS_PASSWORD = cfg.redis.password;
+      REDIS_PASSWORD =
+        if cfg.redis.passwordFile != null
+        then "@REDIS_PASSWORD@"
+        else cfg.redis.password;
 
       CACHE_DRIVER = cfg.cacheDriver;
       QUEUE_CONNECTION = cfg.queueConnection;
       SESSION_DRIVER = cfg.sessionDriver;
 
-      HASHIDS_SALT = cfg.hashids.salt;
+      HASHIDS_SALT =
+        if cfg.hashids.saltFile != null
+        then "@HASHIDS_SALT@"
+        else cfg.hashids.salt;
       HASHIDS_LENGTH = cfg.hashids.length;
 
       MAIL_MAILER = cfg.mail.mailer;
       MAIL_HOST = cfg.mail.host;
       MAIL_PORT = cfg.mail.port;
       MAIL_USERNAME = cfg.mail.username;
-      MAIL_PASSWORD = cfg.mail.password;
+      MAIL_PASSWORD =
+        if cfg.mail.passwordFile != null
+        then "@MAIL_PASSWORD@"
+        else cfg.mail.password;
       MAIL_ENCRYPTION = cfg.mail.encryption;
       MAIL_FROM_ADDRESS = cfg.mail.fromAddress;
       MAIL_FROM_NAME = cfg.mail.fromName;
@@ -91,11 +82,6 @@ with lib; let
       TRUSTED_PROXIES = builtins.concatStringsSep "," cfg.trustedProxies;
       PTERODACTYL_TELEMETRY_ENABLED = cfg.telemetry.enable;
     })
-    // (builtins.listToAttrs (map (s: {
-        name = s.name;
-        value = builtins.hashString "sha256" s.file;
-      })
-      secrets))
     // cfg.extraEnvironment;
 
   php = pkgs.php83.buildEnv {
@@ -120,236 +106,232 @@ with lib; let
   };
 in {
   options.services.pterodactyl.panel = {
-    enable = mkEnableOption "Pterodactyl Panel";
+    enable = lib.mkEnableOption "Pterodactyl Panel";
 
-    package = mkOption {
-      type = types.package;
+    package = lib.mkOption {
+      type = lib.types.package;
       default = pkgs.pterodactyl.panel;
       defaultText = "pkgs.pterodactyl.panel";
       description = "Pterodactyl Panel package to use";
     };
 
-    phpPackage = mkOption {
-      type = types.package;
+    phpPackage = lib.mkOption {
+      type = lib.types.package;
       readOnly = true;
       default = php;
     };
 
-    user = mkOption {
-      type = types.str;
+    user = lib.mkOption {
+      type = lib.types.str;
       default = "pterodactyl-panel";
       description = "User to run the panel as";
     };
 
-    group = mkOption {
-      type = types.str;
-      default =
-        if cfg.enableNginx
-        then config.services.nginx.group
-        else "pterodactyl-panel";
+    group = lib.mkOption {
+      type = lib.types.str;
+      default = "pterodactyl-panel";
       description = "Group to run the panel as";
     };
 
-    enableNginx = mkOption {
-      type = types.bool;
+    enableNginx = lib.mkOption {
+      type = lib.types.bool;
       default = true;
       description = "Whether to enable Nginx and PHP-FPM";
     };
 
     app = {
-      name = mkOption {
-        type = types.str;
+      name = lib.mkOption {
+        type = lib.types.str;
         default = "Pterodactyl";
       };
 
-      env = mkOption {
-        type = types.str;
+      env = lib.mkOption {
+        type = lib.types.str;
         default = "production";
       };
 
-      debug = mkOption {
-        type = types.bool;
+      debug = lib.mkOption {
+        type = lib.types.bool;
         default = false;
       };
 
-      key = mkOption {
-        type = types.nullOr types.str;
+      key = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
         default = null;
       };
 
-      keyFile = mkOption {
-        type = types.nullOr types.path;
+      keyFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
         default = null;
       };
 
-      timezone = mkOption {
-        type = types.str;
+      timezone = lib.mkOption {
+        type = lib.types.str;
         default = "UTC";
       };
 
-      url = mkOption {
-        type = types.str;
+      url = lib.mkOption {
+        type = lib.types.str;
       };
 
-      environmentOnly = mkOption {
-        type = types.bool;
-        default = false; # TODO: someday could be true?
+      environmentOnly = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
       };
     };
 
     database = {
-      createLocally = mkOption {
-        type = types.bool;
+      createLocally = lib.mkOption {
+        type = lib.types.bool;
         default = true;
       };
-      host = mkOption {
-        type = types.str;
+      host = lib.mkOption {
+        type = lib.types.str;
         default = "127.0.0.1";
       };
-      port = mkOption {
-        type = types.port;
+      port = lib.mkOption {
+        type = lib.types.port;
         default = 3306;
       };
-      name = mkOption {
-        type = types.str;
+      name = lib.mkOption {
+        type = lib.types.str;
         default = "panel";
       };
-      user = mkOption {
-        type = types.str;
-        default = config.services.pterodactyl.panel.user;
+      user = lib.mkOption {
+        type = lib.types.str;
+        default = "pterodactyl-panel";
       };
-      password = mkOption {
-        type = types.nullOr types.str;
+      password = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
         default = null;
       };
-      passwordFile = mkOption {
-        type = types.nullOr types.path;
+      passwordFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
         default = null;
       };
     };
 
     redis = {
-      createLocally = mkOption {
-        type = types.bool;
+      createLocally = lib.mkOption {
+        type = lib.types.bool;
         default = true;
       };
-      name = mkOption {
-        type = types.str;
+      name = lib.mkOption {
+        type = lib.types.str;
         default = "pterodactyl-panel";
       };
-      host = mkOption {
-        type = types.str;
+      host = lib.mkOption {
+        type = lib.types.str;
         default = "127.0.0.1";
       };
-      password = mkOption {
-        type = types.nullOr types.str;
+      password = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
         default = null;
       };
-      passwordFile = mkOption {
-        type = types.nullOr types.path;
+      passwordFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
         default = null;
       };
-      port = mkOption {
-        type = types.port;
+      port = lib.mkOption {
+        type = lib.types.port;
         default = 6379;
       };
     };
 
-    cacheDriver = mkOption {
-      type = types.str;
+    cacheDriver = lib.mkOption {
+      type = lib.types.str;
       default = "redis";
     };
 
-    queueConnection = mkOption {
-      type = types.str;
+    queueConnection = lib.mkOption {
+      type = lib.types.str;
       default = "redis";
     };
 
-    sessionDriver = mkOption {
-      type = types.str;
+    sessionDriver = lib.mkOption {
+      type = lib.types.str;
       default = "redis";
     };
 
     hashids = {
-      salt = mkOption {
-        type = types.nullOr types.str;
+      salt = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
         default = null;
       };
-      saltFile = mkOption {
-        type = types.nullOr types.path;
+      saltFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
         default = null;
       };
-      length = mkOption {
-        type = types.int;
+      length = lib.mkOption {
+        type = lib.types.int;
         default = 8;
       };
     };
 
     mail = {
-      mailer = mkOption {
-        type = types.str;
+      mailer = lib.mkOption {
+        type = lib.types.str;
         default = "smtp";
       };
-      host = mkOption {
-        type = types.nullOr types.str;
+      host = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
         default = null;
       };
-      port = mkOption {
-        type = types.port;
+      port = lib.mkOption {
+        type = lib.types.port;
         default = 25;
       };
-      username = mkOption {
-        type = types.nullOr types.str;
+      username = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
         default = null;
       };
-      password = mkOption {
-        type = types.nullOr types.str;
+      password = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
         default = null;
       };
-      passwordFile = mkOption {
-        type = types.nullOr types.path;
+      passwordFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
         default = null;
       };
-      encryption = mkOption {
-        type = types.str;
+      encryption = lib.mkOption {
+        type = lib.types.str;
         default = "tls";
       };
-      fromAddress = mkOption {
-        type = types.nullOr types.str;
+      fromAddress = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
         default = null;
       };
-      fromName = mkOption {
-        type = types.str;
+      fromName = lib.mkOption {
+        type = lib.types.str;
         default = "Pterodactyl Panel";
       };
     };
 
-    trustedProxies = mkOption {
-      type = types.listOf types.str;
+    trustedProxies = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
       default = [];
     };
 
-    telemetry.enable = mkOption {
-      type = types.bool;
+    telemetry.enable = lib.mkOption {
+      type = lib.types.bool;
       default = true;
     };
 
-    extraEnvironment = mkOption {
-      type = types.attrsOf types.str;
+    extraEnvironment = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
       default = {};
-    };
-
-    extraEnvironmentFile = mkOption {
-      type = types.nullOr types.path;
-      default = null;
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       {
         assertion = cfg.app.key == null || cfg.app.keyFile == null;
         message = "cannot set both services.pterodactyl.panel.app.key and services.pterodactyl.panel.app.keyFile";
+      }
+      {
+        assertion = cfg.app.key != null || cfg.app.keyFile != null;
+        message = "must set either services.pterodactyl.panel.app.key or services.pterodactyl.panel.app.keyFile";
       }
       {
         assertion = cfg.database.password == null || cfg.database.passwordFile == null;
@@ -364,12 +346,16 @@ in {
         message = "cannot set both services.pterodactyl.panel.hashids.salt and services.pterodactyl.panel.hashids.saltFile";
       }
       {
+        assertion = cfg.hashids.salt != null || cfg.hashids.saltFile != null;
+        message = "must set either services.pterodactyl.panel.hashids.salt or services.pterodactyl.panel.hashids.saltFile";
+      }
+      {
         assertion = cfg.mail.password == null || cfg.mail.passwordFile == null;
         message = "cannot set both services.pterodactyl.panel.mail.password and services.pterodactyl.panel.mail.passwordFile";
       }
     ];
 
-    services.mysql = optionalAttrs cfg.database.createLocally {
+    services.mysql = lib.optionalAttrs cfg.database.createLocally {
       enable = true;
       package = pkgs.mariadb;
       ensureDatabases = [cfg.database.name];
@@ -381,13 +367,13 @@ in {
       ];
     };
 
-    services.redis.servers."${cfg.redis.name}" = mkIf cfg.redis.createLocally (
+    services.redis.servers."${cfg.redis.name}" = lib.mkIf cfg.redis.createLocally (
       {
         enable = true;
         group = cfg.group;
       }
-      // optionalAttrs (cfg.redis.password != null) {requirePass = cfg.redis.password;}
-      // optionalAttrs (cfg.redis.passwordFile != null) {requirePassFile = cfg.redis.passwordFile;}
+      // lib.optionalAttrs (cfg.redis.password != null) {requirePass = cfg.redis.password;}
+      // lib.optionalAttrs (cfg.redis.passwordFile != null) {requirePassFile = cfg.redis.passwordFile;}
     );
 
     systemd.tmpfiles.settings."10-pterodactyl-panel" =
@@ -423,8 +409,8 @@ in {
 
     systemd.services.pterodactyl-panel-setup = {
       description = "Pterodactyl Panel setup";
-      requiredBy = optional cfg.enableNginx "phpfpm-pterodactyl-panel.service";
-      before = optional cfg.enableNginx "phpfpm-pterodactyl-panel.service";
+      requiredBy = lib.optional cfg.enableNginx "phpfpm-pterodactyl-panel.service";
+      before = lib.optional cfg.enableNginx "phpfpm-pterodactyl-panel.service";
       after = ["mysql.service"];
       restartTriggers = [cfg.package];
 
@@ -441,20 +427,35 @@ in {
       script = ''
         set -eu
 
-        install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (generators.toKeyValue {
-            mkKeyValue = generators.mkKeyValueDefault {
+        install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (lib.generators.toKeyValue {
+            mkKeyValue = lib.generators.mkKeyValueDefault {
               mkValueString = v:
-                if builtins.isString v && strings.hasInfix " " v
+                if builtins.isString v && lib.strings.hasInfix " " v
                 then ''"${v}"''
-                else generators.mkValueStringDefault {} v;
+                else lib.generators.mkValueStringDefault {} v;
             } "=";
           }
           env)} /var/lib/pterodactyl-panel/.env
 
-        ${concatMapStrings (s: ''
-            ${pkgs.replace-secret}/bin/replace-secret ${escapeShellArgs [(builtins.hashString "sha256" s.file) s.file "/var/lib/pterodactyl-panel/.env"]}
-          '')
-          secrets}
+        ${lib.optionalString (cfg.app.keyFile != null) ''
+          ${pkgs.replace-secret}/bin/replace-secret '@APP_KEY@' ${lib.escapeShellArg cfg.app.keyFile} /var/lib/pterodactyl-panel/.env
+        ''}
+
+        ${lib.optionalString (cfg.database.passwordFile != null) ''
+          ${pkgs.replace-secret}/bin/replace-secret '@DB_PASSWORD@' ${lib.escapeShellArg cfg.database.passwordFile} /var/lib/pterodactyl-panel/.env
+        ''}
+
+        ${lib.optionalString (cfg.redis.passwordFile != null) ''
+          ${pkgs.replace-secret}/bin/replace-secret '@REDIS_PASSWORD@' ${lib.escapeShellArg cfg.redis.passwordFile} /var/lib/pterodactyl-panel/.env
+        ''}
+
+        ${lib.optionalString (cfg.hashids.saltFile != null) ''
+          ${pkgs.replace-secret}/bin/replace-secret '@HASHIDS_SALT@' ${lib.escapeShellArg cfg.hashids.saltFile} /var/lib/pterodactyl-panel/.env
+        ''}
+
+        ${lib.optionalString (cfg.mail.passwordFile != null) ''
+          ${pkgs.replace-secret}/bin/replace-secret '@MAIL_PASSWORD@' ${lib.escapeShellArg cfg.mail.passwordFile} /var/lib/pterodactyl-panel/.env
+        ''}
 
         ${php}/bin/php ${cfg.package}/artisan migrate --seed --force
         ${php}/bin/php ${cfg.package}/artisan optimize:clear
@@ -505,7 +506,7 @@ in {
       };
     };
 
-    services.phpfpm.pools.pterodactyl-panel = mkIf cfg.enableNginx {
+    services.phpfpm.pools.pterodactyl-panel = lib.mkIf cfg.enableNginx {
       user = cfg.user;
       group = cfg.group;
       phpPackage = php;
@@ -520,15 +521,15 @@ in {
       };
     };
 
-    systemd.services."phpfpm-pterodactyl-panel" = mkIf cfg.enableNginx {
+    systemd.services."phpfpm-pterodactyl-panel" = lib.mkIf cfg.enableNginx {
       requires = ["pterodactyl-panel-setup.service"];
     };
 
-    services.nginx = mkIf cfg.enableNginx {
+    services.nginx = lib.mkIf cfg.enableNginx {
       enable = true;
-      recommendedTlsSettings = mkDefault true;
-      recommendedOptimisation = mkDefault true;
-      recommendedGzipSettings = mkDefault true;
+      recommendedTlsSettings = lib.mkDefault true;
+      recommendedOptimisation = lib.mkDefault true;
+      recommendedGzipSettings = lib.mkDefault true;
       virtualHosts."${builtins.replaceStrings ["https://" "http://"] ["" ""] cfg.app.url}" = {
         root = "${cfg.package}/public";
         extraConfig = ''
@@ -565,16 +566,18 @@ in {
       };
     };
 
-    users.users = mkIf (cfg.user == "pterodactyl-panel") {
+    services.pterodactyl.panel.group = lib.mkIf cfg.enableNginx (lib.mkDefault config.services.nginx.group);
+
+    users.users = lib.mkIf (cfg.user == "pterodactyl-panel") {
       ${cfg.user} = {
         isSystemUser = true;
         group = cfg.group;
         home = "/var/lib/pterodactyl-panel";
-        extraGroups = optionals cfg.redis.createLocally ["redis"];
+        extraGroups = lib.optionals cfg.redis.createLocally ["redis"];
       };
     };
 
-    users.groups = mkIf (cfg.group == "pterodactyl-panel") {
+    users.groups = lib.mkIf (cfg.group == "pterodactyl-panel") {
       ${cfg.group} = {};
     };
   };

@@ -3,20 +3,8 @@
   lib,
   pkgs,
   ...
-}:
-with lib; let
+}: let
   cfg = config.services.pterodactyl.wings;
-
-  secrets = lib.filter (s: s.file != null) [
-    {
-      name = "token";
-      file = cfg.tokenFile;
-    }
-    {
-      name = "token_id";
-      file = cfg.tokenIdFile;
-    }
-  ];
 
   mainConfig = {
     debug = cfg.debug;
@@ -24,11 +12,11 @@ with lib; let
     uuid = cfg.uuid;
     token_id =
       if cfg.tokenIdFile != null
-      then builtins.hashString "sha256" cfg.tokenIdFile
+      then "@TOKEN_ID@"
       else cfg.tokenId;
     token =
       if cfg.tokenFile != null
-      then builtins.hashString "sha256" cfg.tokenFile
+      then "@TOKEN@"
       else cfg.token;
     api = {
       host = cfg.api.host;
@@ -72,184 +60,175 @@ with lib; let
     ignore_panel_config_updates = true;
   };
 
-  wingsConfig = (pkgs.formats.yaml {}).generate "config.yml" (recursiveUpdate (recursiveUpdate mainConfig cfg.extraConfig) (
-    if cfg.extraConfigFile != null
-    then builtins.fromYAML (builtins.readFile cfg.extraConfigFile)
-    else {}
-  ));
+  wingsConfig = (pkgs.formats.yaml {}).generate "config.yml" (lib.recursiveUpdate mainConfig cfg.extraConfig);
 in {
   options.services.pterodactyl.wings = {
-    enable = mkEnableOption "Pterodactyl Wings service";
+    enable = lib.mkEnableOption "Pterodactyl Wings service";
 
-    package = mkOption {
-      type = types.package;
+    package = lib.mkOption {
+      type = lib.types.package;
       default = pkgs.pterodactyl.wings;
       defaultText = "pkgs.pterodactyl.wings";
       description = "The Pterodactyl Wings package to use";
     };
 
-    user = mkOption {
-      type = types.str;
+    user = lib.mkOption {
+      type = lib.types.str;
       default = "pterodactyl-wings";
       description = "User to run wings as";
     };
 
-    group = mkOption {
-      type = types.str;
+    group = lib.mkOption {
+      type = lib.types.str;
       default = "pterodactyl-wings";
       description = "Group to run wings as";
     };
 
-    openFirewall = mkOption {
-      type = types.bool;
+    openFirewall = lib.mkOption {
+      type = lib.types.bool;
       default = false;
       description = "Whether to open the wings API and SFTP ports in the firewall";
     };
 
-    rootDir = mkOption {
-      type = types.path;
+    rootDir = lib.mkOption {
+      type = lib.types.path;
       default = "/var/lib/pterodactyl";
     };
 
-    logDir = mkOption {
-      type = types.path;
+    logDir = lib.mkOption {
+      type = lib.types.path;
       default = "/var/log/pterodactyl";
     };
 
-    tmpDir = mkOption {
-      type = types.path;
+    tmpDir = lib.mkOption {
+      type = lib.types.path;
       default = "/var/cache/pterodactyl";
     };
 
-    runDir = mkOption {
-      type = types.path;
+    runDir = lib.mkOption {
+      type = lib.types.path;
       default = "/run/wings";
     };
 
-    debug = mkOption {
-      type = types.bool;
+    debug = lib.mkOption {
+      type = lib.types.bool;
       default = false;
     };
 
-    appName = mkOption {
-      type = types.str;
+    appName = lib.mkOption {
+      type = lib.types.str;
       default = "Pterodactyl";
     };
 
-    uuid = mkOption {
-      type = types.str;
+    uuid = lib.mkOption {
+      type = lib.types.str;
     };
 
-    tokenId = mkOption {
-      type = types.nullOr types.str;
+    tokenId = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
     };
 
-    tokenIdFile = mkOption {
-      type = types.nullOr types.path;
+    tokenIdFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
       default = null;
     };
 
-    token = mkOption {
-      type = types.nullOr types.str;
+    token = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
     };
 
-    tokenFile = mkOption {
-      type = types.nullOr types.path;
+    tokenFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
       default = null;
     };
 
-    remote = mkOption {
-      type = types.str;
+    remote = lib.mkOption {
+      type = lib.types.str;
     };
 
     api = {
-      host = mkOption {
-        type = types.str;
+      host = lib.mkOption {
+        type = lib.types.str;
         default = "0.0.0.0";
       };
 
-      port = mkOption {
-        type = types.port;
+      port = lib.mkOption {
+        type = lib.types.port;
         default = 8080;
       };
 
       ssl = {
-        enable = mkOption {
-          type = types.bool;
+        enable = lib.mkOption {
+          type = lib.types.bool;
           default = false;
         };
 
-        certFile = mkOption {
-          type = types.nullOr types.path;
+        certFile = lib.mkOption {
+          type = lib.types.nullOr lib.types.path;
           default = null;
         };
 
-        keyFile = mkOption {
-          type = types.nullOr types.path;
+        keyFile = lib.mkOption {
+          type = lib.types.nullOr lib.types.path;
           default = null;
         };
       };
 
-      uploadLimit = mkOption {
-        type = types.int;
+      uploadLimit = lib.mkOption {
+        type = lib.types.int;
         default = 100;
       };
 
-      trustedProxies = mkOption {
-        type = types.listOf types.str;
+      trustedProxies = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
         default = [];
       };
     };
 
     system.sftp = {
-      host = mkOption {
-        type = types.str;
+      host = lib.mkOption {
+        type = lib.types.str;
         default = "0.0.0.0";
       };
 
-      port = mkOption {
-        type = types.port;
+      port = lib.mkOption {
+        type = lib.types.port;
         default = 2022;
       };
     };
 
     docker = {
-      tmpfsSize = mkOption {
-        type = types.int;
+      tmpfsSize = lib.mkOption {
+        type = lib.types.int;
         default = 100;
       };
 
-      containerPidLimit = mkOption {
-        type = types.int;
+      containerPidLimit = lib.mkOption {
+        type = lib.types.int;
         default = 512;
       };
 
       installerLimits = {
-        memory = mkOption {
-          type = types.int;
+        memory = lib.mkOption {
+          type = lib.types.int;
           default = 1024;
         };
-        cpu = mkOption {
-          type = types.int;
+        cpu = lib.mkOption {
+          type = lib.types.int;
           default = 100;
         };
       };
     };
 
-    extraConfig = mkOption {
-      type = types.attrsOf types.anything;
+    extraConfig = lib.mkOption {
+      type = lib.types.attrsOf lib.types.anything;
       default = {};
-    };
-
-    extraConfigFile = mkOption {
-      type = types.nullOr types.path;
-      default = null;
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       {
         assertion = config.virtualisation.docker.enable;
@@ -264,16 +243,24 @@ in {
         message = "services.pterodactyl.wings.remote must be set";
       }
       {
-        assertion = (cfg.tokenId != null && cfg.tokenIdFile == null) || (cfg.tokenId == null && cfg.tokenIdFile != null);
-        message = "cannot set both or neither services.pterodactyl.wings.tokenId and services.pterodactyl.wings.tokenIdFile";
+        assertion = cfg.tokenId == null || cfg.tokenIdFile == null;
+        message = "cannot set both services.pterodactyl.wings.tokenId and services.pterodactyl.wings.tokenIdFile";
       }
       {
-        assertion = (cfg.token != null && cfg.tokenFile == null) || (cfg.token == null && cfg.tokenFile != null);
-        message = "cannot set both or neither services.pterodactyl.wings.token and services.pterodactyl.wings.tokenFile";
+        assertion = cfg.tokenId != null || cfg.tokenIdFile != null;
+        message = "must set either services.pterodactyl.wings.tokenId or services.pterodactyl.wings.tokenIdFile";
+      }
+      {
+        assertion = cfg.token == null || cfg.tokenFile == null;
+        message = "cannot set both services.pterodactyl.wings.token and services.pterodactyl.wings.tokenFile";
+      }
+      {
+        assertion = cfg.token != null || cfg.tokenFile != null;
+        message = "must set either services.pterodactyl.wings.token or services.pterodactyl.wings.tokenFile";
       }
     ];
 
-    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [cfg.api.port cfg.system.sftp.port];
+    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [cfg.api.port cfg.system.sftp.port];
 
     systemd.tmpfiles.settings."10-pterodactyl-wings" =
       lib.attrsets.genAttrs
@@ -326,16 +313,20 @@ in {
 
         install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${wingsConfig} /var/lib/pterodactyl/config.yml
 
-        ${concatMapStrings (s: ''
-            ${pkgs.replace-secret}/bin/replace-secret ${escapeShellArgs [(builtins.hashString "sha256" s.file) s.file "/var/lib/pterodactyl/config.yml"]}
-          '')
-          secrets}
+        ${lib.optionalString (cfg.tokenIdFile != null) ''
+          ${pkgs.replace-secret}/bin/replace-secret '@TOKEN_ID@' ${lib.escapeShellArg cfg.tokenIdFile} /var/lib/pterodactyl/config.yml
+        ''}
+
+        ${lib.optionalString (cfg.tokenFile != null) ''
+          ${pkgs.replace-secret}/bin/replace-secret '@TOKEN@' ${lib.escapeShellArg cfg.tokenFile} /var/lib/pterodactyl/config.yml
+        ''}
       '';
     };
 
     systemd.services.pterodactyl-wings = {
       description = "Pterodactyl Wings service";
-      after = ["network.target" "docker.service" "pterodactyl-wings-setup.service"];
+      after = ["network-online.target" "docker.service" "pterodactyl-wings-setup.service"];
+      wants = ["network-online.target"];
       requires = ["docker.service" "pterodactyl-wings-setup.service"];
       partOf = ["docker.service"];
       wantedBy = ["multi-user.target"];
@@ -353,6 +344,7 @@ in {
           cfg.rootDir
           cfg.logDir
           cfg.tmpDir
+          cfg.runDir
         ];
         AmbientCapabilities = "CAP_CHOWN";
       };
@@ -364,6 +356,7 @@ in {
       home = cfg.rootDir;
       extraGroups = ["docker"];
     };
+
     users.groups.${cfg.group} = {};
   };
 }
