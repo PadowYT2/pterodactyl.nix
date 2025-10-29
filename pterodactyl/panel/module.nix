@@ -158,6 +158,7 @@ in {
       type = lib.types.package;
       readOnly = true;
       default = php;
+      description = "The PHP package to use";
     };
 
     user = lib.mkOption {
@@ -182,40 +183,48 @@ in {
       name = lib.mkOption {
         type = lib.types.str;
         default = "Pterodactyl";
+        description = "The name of the panel";
       };
 
       env = lib.mkOption {
         type = lib.types.str;
         default = "production";
+        description = "The panel environment";
       };
 
       debug = lib.mkOption {
         type = lib.types.bool;
         default = false;
+        description = "Whether to run the panel in debug mode";
       };
 
       key = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
+        description = "The panel encryption key";
       };
 
       keyFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
+        description = "Path to a file containing the panel encryption key";
       };
 
       timezone = lib.mkOption {
         type = lib.types.str;
         default = "UTC";
+        description = "The timezone for the panel";
       };
 
       url = lib.mkOption {
         type = lib.types.str;
+        description = "The URL of the panel";
       };
 
       environmentOnly = lib.mkOption {
         type = lib.types.bool;
-        default = false;
+        default = true;
+        description = "The ability to manage settings from the panel";
       };
     };
 
@@ -223,30 +232,37 @@ in {
       createLocally = lib.mkOption {
         type = lib.types.bool;
         default = true;
+        description = "Whether to create the database locally";
       };
       host = lib.mkOption {
         type = lib.types.str;
         default = "127.0.0.1";
+        description = "The host of the database";
       };
       port = lib.mkOption {
         type = lib.types.port;
         default = 3306;
+        description = "The port of the database";
       };
       name = lib.mkOption {
         type = lib.types.str;
         default = "panel";
+        description = "The name of the database";
       };
       user = lib.mkOption {
         type = lib.types.str;
         default = "pterodactyl-panel";
+        description = "The user for the database";
       };
       password = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
+        description = "The password for the database";
       };
       passwordFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
+        description = "Path to a file containing the database password";
       };
     };
 
@@ -254,56 +270,68 @@ in {
       createLocally = lib.mkOption {
         type = lib.types.bool;
         default = true;
+        description = "Whether to create the Redis instance locally";
       };
       name = lib.mkOption {
         type = lib.types.str;
         default = "pterodactyl-panel";
+        description = "The name of the Redis server to create";
       };
       host = lib.mkOption {
         type = lib.types.str;
         default = "127.0.0.1";
+        description = "The host of the Redis server";
       };
       password = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
+        description = "The password for the Redis server";
       };
       passwordFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
+        description = "Path to a file containing the Redis password";
       };
       port = lib.mkOption {
         type = lib.types.port;
         default = 6379;
+        description = "The port of the Redis server";
       };
     };
 
     cacheDriver = lib.mkOption {
       type = lib.types.str;
       default = "redis";
+      description = "The driver for the cache";
     };
 
     queueConnection = lib.mkOption {
       type = lib.types.str;
       default = "redis";
+      description = "The driver for the queue";
     };
 
     sessionDriver = lib.mkOption {
       type = lib.types.str;
       default = "redis";
+      description = "The driver for the session";
     };
 
     hashids = {
       salt = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
+        description = "The salt for the hash";
       };
       saltFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
+        description = "Path to a file containing the hash salt";
       };
       length = lib.mkOption {
         type = lib.types.int;
         default = 8;
+        description = "The length of the generated hash";
       };
     };
 
@@ -311,54 +339,66 @@ in {
       mailer = lib.mkOption {
         type = lib.types.str;
         default = "smtp";
+        description = "The mailer to use";
       };
       host = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
+        description = "The host of the mail server";
       };
       port = lib.mkOption {
         type = lib.types.port;
         default = 25;
+        description = "The port of the mail server";
       };
       username = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
+        description = "The username for the mail server";
       };
       password = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
+        description = "The password for the mail server";
       };
       passwordFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
+        description = "Path to a file containing the mail password";
       };
       encryption = lib.mkOption {
         type = lib.types.str;
         default = "tls";
+        description = "The encryption for the mail server";
       };
       fromAddress = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
+        description = "The from address for the mail server";
       };
       fromName = lib.mkOption {
         type = lib.types.str;
         default = "Pterodactyl Panel";
+        description = "The from name for the mail server";
       };
     };
 
     trustedProxies = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [];
+      description = "A list of trusted proxy IP addresses";
     };
 
     telemetry.enable = lib.mkOption {
       type = lib.types.bool;
       default = true;
+      description = "Whether to enable telemetry";
     };
 
     extraEnvironment = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       default = {};
+      description = "Extra environment variables to be merged with the main environment variables";
     };
   };
 

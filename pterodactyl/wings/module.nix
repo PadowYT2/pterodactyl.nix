@@ -107,97 +107,116 @@ in {
     rootDir = lib.mkOption {
       type = lib.types.path;
       default = "/var/lib/pterodactyl-wings";
+      description = "The root directory where all of Wings's data is stored";
     };
 
     logDir = lib.mkOption {
       type = lib.types.path;
       default = "/var/log/pterodactyl-wings";
+      description = "Directory where logs for Wings and server installations are stored";
     };
 
     tmpDir = lib.mkOption {
       type = lib.types.path;
       default = "/var/cache/pterodactyl-wings";
+      description = "Directory where temporary files for server installations are stored";
     };
 
     runDir = lib.mkOption {
       type = lib.types.path;
       default = "/run/pterodactyl-wings";
+      description = "Directory where runtime files are stored";
     };
 
     debug = lib.mkOption {
       type = lib.types.bool;
       default = false;
+      description = "Whether to run Wings in debug mode";
     };
 
     appName = lib.mkOption {
       type = lib.types.str;
       default = "Pterodactyl";
+      description = "The name of the daemon";
     };
 
     uuid = lib.mkOption {
       type = lib.types.str;
+      description = "A unique identifier for this node in the panel";
     };
 
     tokenId = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
+      description = "An identifier for the token";
     };
 
     tokenIdFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = null;
+      description = "Path to a file containing the token ID";
     };
 
     token = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
+      description = "The token for communicating with the panel";
     };
 
     tokenFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = null;
+      description = "Path to a file containing the token";
     };
 
     remote = lib.mkOption {
       type = lib.types.str;
+      description = "The URL of the panel to connect to";
     };
 
     api = {
       host = lib.mkOption {
         type = lib.types.str;
         default = "0.0.0.0";
+        description = "The interface that Wings should bind to";
       };
 
       port = lib.mkOption {
         type = lib.types.port;
         default = 8080;
+        description = "The port that Wings should bind to";
       };
 
       ssl = {
         enable = lib.mkOption {
           type = lib.types.bool;
           default = false;
+          description = "Whether to enable SSL for the API";
         };
 
         certFile = lib.mkOption {
           type = lib.types.nullOr lib.types.path;
           default = null;
+          description = "Path to the SSL certificate file";
         };
 
         keyFile = lib.mkOption {
           type = lib.types.nullOr lib.types.path;
           default = null;
+          description = "Path to the SSL key file";
         };
       };
 
       uploadLimit = lib.mkOption {
         type = lib.types.int;
         default = 100;
+        description = "The maximum size for files uploaded through the panel in MB";
       };
 
       trustedProxies = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
+        description = "A list of trusted proxy IP addresses";
       };
     };
 
@@ -205,11 +224,13 @@ in {
       host = lib.mkOption {
         type = lib.types.str;
         default = "0.0.0.0";
+        description = "The interface that Wings's SFTP should bind to";
       };
 
       port = lib.mkOption {
         type = lib.types.port;
         default = 2022;
+        description = "The port that Wings's SFTP should bind to";
       };
     };
 
@@ -217,21 +238,26 @@ in {
       tmpfsSize = lib.mkOption {
         type = lib.types.int;
         default = 100;
+        description = "The size of the temporary directory in MB for the container";
       };
 
       containerPidLimit = lib.mkOption {
         type = lib.types.int;
         default = 512;
+        description = "Total number of processes that can be active in a container";
       };
 
       installerLimits = {
         memory = lib.mkOption {
           type = lib.types.int;
           default = 1024;
+          description = "The maximum amount of RAM the installation process can use";
         };
+
         cpu = lib.mkOption {
           type = lib.types.int;
           default = 100;
+          description = "The maximum amount of CPU the installation process can use";
         };
       };
     };
@@ -239,6 +265,7 @@ in {
     extraConfig = lib.mkOption {
       type = lib.types.attrsOf lib.types.anything;
       default = {};
+      description = "Extra configuration to be merged with the main configuration";
     };
   };
 
