@@ -245,10 +245,6 @@ in {
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = config.virtualisation.docker.enable;
-        message = "services.pterodactyl.wings requires virtualisation.docker to be enabled";
-      }
-      {
         assertion = cfg.uuid != "";
         message = "services.pterodactyl.wings.uuid must be set";
       }
@@ -273,6 +269,8 @@ in {
         message = "must set either services.pterodactyl.wings.token or services.pterodactyl.wings.tokenFile";
       }
     ];
+
+    virtualisation.docker.enable = true;
 
     networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [cfg.api.port cfg.system.sftp.port];
 
