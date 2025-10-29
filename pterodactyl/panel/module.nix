@@ -117,26 +117,26 @@
               else lib.generators.mkValueStringDefault {} v;
           } "=";
         }
-        env)} /var/lib/pterodactyl-panel/.env
+        env)} ${cfg.dataDir}/.env
 
       ${lib.optionalString (cfg.app.keyFile != null) ''
-        replace-secret '@APP_KEY@' ${lib.escapeShellArg cfg.app.keyFile} /var/lib/pterodactyl-panel/.env
+        replace-secret '@APP_KEY@' ${lib.escapeShellArg cfg.app.keyFile} ${cfg.dataDir}/.env
       ''}
 
       ${lib.optionalString (cfg.database.passwordFile != null) ''
-        replace-secret '@DB_PASSWORD@' ${lib.escapeShellArg cfg.database.passwordFile} /var/lib/pterodactyl-panel/.env
+        replace-secret '@DB_PASSWORD@' ${lib.escapeShellArg cfg.database.passwordFile} ${cfg.dataDir}/.env
       ''}
 
       ${lib.optionalString (cfg.redis.passwordFile != null) ''
-        replace-secret '@REDIS_PASSWORD@' ${lib.escapeShellArg cfg.redis.passwordFile} /var/lib/pterodactyl-panel/.env
+        replace-secret '@REDIS_PASSWORD@' ${lib.escapeShellArg cfg.redis.passwordFile} ${cfg.dataDir}/.env
       ''}
 
       ${lib.optionalString (cfg.hashids.saltFile != null) ''
-        replace-secret '@HASHIDS_SALT@' ${lib.escapeShellArg cfg.hashids.saltFile} /var/lib/pterodactyl-panel/.env
+        replace-secret '@HASHIDS_SALT@' ${lib.escapeShellArg cfg.hashids.saltFile} ${cfg.dataDir}/.env
       ''}
 
       ${lib.optionalString (cfg.mail.passwordFile != null) ''
-        replace-secret '@MAIL_PASSWORD@' ${lib.escapeShellArg cfg.mail.passwordFile} /var/lib/pterodactyl-panel/.env
+        replace-secret '@MAIL_PASSWORD@' ${lib.escapeShellArg cfg.mail.passwordFile} ${cfg.dataDir}/.env
       ''}
 
       php ${cfg.package}/artisan migrate --seed --force
@@ -177,6 +177,12 @@ in {
       type = lib.types.bool;
       default = true;
       description = "Whether to enable Nginx and PHP-FPM";
+    };
+
+    dataDir = lib.mkOption {
+      type = lib.types.path;
+      default = "/var/lib/pterodactyl-panel";
+      description = "The root directory where all of the panel's data is stored";
     };
 
     app = {
@@ -458,18 +464,18 @@ in {
     systemd.tmpfiles.settings."10-pterodactyl-panel" =
       lib.attrsets.genAttrs
       [
-        "/var/lib/pterodactyl-panel/storage"
-        "/var/lib/pterodactyl-panel/storage/app"
-        "/var/lib/pterodactyl-panel/storage/app/public"
-        "/var/lib/pterodactyl-panel/storage/app/private"
-        "/var/lib/pterodactyl-panel/storage/clockwork"
-        "/var/lib/pterodactyl-panel/storage/framework"
-        "/var/lib/pterodactyl-panel/storage/framework/cache"
-        "/var/lib/pterodactyl-panel/storage/framework/sessions"
-        "/var/lib/pterodactyl-panel/storage/framework/views"
-        "/var/lib/pterodactyl-panel/storage/logs"
-        "/var/lib/pterodactyl-panel/bootstrap"
-        "/var/lib/pterodactyl-panel/bootstrap/cache"
+        "${cfg.dataDir}/storage"
+        "${cfg.dataDir}/storage/app"
+        "${cfg.dataDir}/storage/app/public"
+        "${cfg.dataDir}/storage/app/private"
+        "${cfg.dataDir}/storage/clockwork"
+        "${cfg.dataDir}/storage/framework"
+        "${cfg.dataDir}/storage/framework/cache"
+        "${cfg.dataDir}/storage/framework/sessions"
+        "${cfg.dataDir}/storage/framework/views"
+        "${cfg.dataDir}/storage/logs"
+        "${cfg.dataDir}/bootstrap"
+        "${cfg.dataDir}/bootstrap/cache"
       ]
       (n: {
         d = {
@@ -479,7 +485,7 @@ in {
         };
       })
       // {
-        "/var/lib/pterodactyl-panel".d = {
+        "${cfg.dataDir}".d = {
           user = cfg.user;
           group = cfg.group;
           mode = "0750";
@@ -500,7 +506,7 @@ in {
         User = cfg.user;
         Group = cfg.group;
         WorkingDirectory = cfg.package;
-        ReadWritePaths = ["/var/lib/pterodactyl-panel"];
+        ReadWritePaths = [cfg.dataDir];
         StateDirectory = "pterodactyl-panel";
       };
     };
@@ -517,7 +523,7 @@ in {
         Group = cfg.group;
         Restart = "always";
         WorkingDirectory = cfg.package;
-        ReadWritePaths = ["/var/lib/pterodactyl-panel"];
+        ReadWritePaths = [cfg.dataDir];
         StateDirectory = "pterodactyl-panel";
       };
     };
@@ -533,7 +539,7 @@ in {
         User = cfg.user;
         Group = cfg.group;
         WorkingDirectory = cfg.package;
-        ReadWritePaths = ["/var/lib/pterodactyl-panel"];
+        ReadWritePaths = [cfg.dataDir];
         StateDirectory = "pterodactyl-panel";
       };
     };
@@ -615,7 +621,7 @@ in {
       ${cfg.user} = {
         isSystemUser = true;
         group = cfg.group;
-        home = "/var/lib/pterodactyl-panel";
+        home = cfg.dataDir;
         extraGroups = lib.optionals cfg.redis.createLocally ["redis"];
       };
     };
