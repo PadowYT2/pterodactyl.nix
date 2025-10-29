@@ -9,14 +9,14 @@
   nodejs,
   dataDir ? "/var/lib/pterodactyl-panel",
 }:
-stdenvNoCC.mkDerivation rec {
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "pterodactyl-panel";
   version = "1.11.11";
 
   src = fetchFromGitHub {
     owner = "pterodactyl";
     repo = "panel";
-    tag = "v${version}";
+    tag = "v${finalAttrs.version}";
     sha256 = "sha256-Os8fTkruiUh6+ec5txhVgXPSDC2/LaCtvij7rQuWy0U=";
   };
 
@@ -29,7 +29,9 @@ stdenvNoCC.mkDerivation rec {
   ];
 
   composerVendor = php83.mkComposerVendor {
-    inherit pname src version;
+    pname = finalAttrs.pname;
+    src = finalAttrs.src;
+    version = finalAttrs.version;
     composerNoDev = true;
     composerNoPlugins = true;
     composerNoScripts = true;
@@ -39,7 +41,7 @@ stdenvNoCC.mkDerivation rec {
   };
 
   offlineCache = fetchYarnDeps {
-    yarnLock = "${src}/yarn.lock";
+    yarnLock = "${finalAttrs.src}/yarn.lock";
     hash = "sha256-Pv2/0kfOKaAMeioNU1MBdwVEMjDbk+QR8Qs1EwA5bsQ=";
   };
 
@@ -63,7 +65,7 @@ stdenvNoCC.mkDerivation rec {
   meta = {
     description = "Free, open-source game server management panel";
     homepage = "https://pterodactyl.io";
-    changelog = "https://github.com/pterodactyl/panel/releases/tag/v${version}";
+    changelog = "https://github.com/pterodactyl/panel/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.mit;
   };
-}
+})

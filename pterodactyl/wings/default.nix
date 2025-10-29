@@ -3,14 +3,14 @@
   buildGoModule,
   fetchFromGitHub,
 }:
-buildGoModule rec {
+buildGoModule (finalAttrs: {
   pname = "wings";
   version = "1.11.13";
 
   src = fetchFromGitHub {
     owner = "pterodactyl";
     repo = "wings";
-    tag = "v${version}";
+    tag = "v${finalAttrs.version}";
     sha256 = "sha256-UpYUHWM2J8nH+srdKSpFQEaPx2Rj2+YdphV8jJXcoBU=";
   };
 
@@ -20,14 +20,14 @@ buildGoModule rec {
   ldflags = [
     "-s"
     "-w"
-    "-X github.com/pterodactyl/wings/system.Version=${version}"
+    "-X github.com/pterodactyl/wings/system.Version=${finalAttrs.version}"
   ];
 
   meta = {
     description = "Server control plane for Pterodactyl Panel";
     homepage = "https://pterodactyl.io";
-    changelog = "https://github.com/pterodactyl/wings/releases/tag/v${version}";
+    changelog = "https://github.com/pterodactyl/wings/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.mit;
     platforms = lib.platforms.linux;
   };
-}
+})
