@@ -60,7 +60,21 @@
     ignore_panel_config_updates = true;
   };
 
-  wingsConfigFile = (pkgs.formats.yaml {}).generate "config.yml" (lib.recursiveUpdate mainConfig cfg.extraConfig);
+  setupScript = pkgs.writeShellApplication {
+    name = "pterodactyl-wings-setup";
+    runtimeInputs = [pkgs.coreutils pkgs.replace-secret];
+    text = ''
+      install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${(pkgs.formats.yaml {}).generate "config.yml" (lib.recursiveUpdate mainConfig cfg.extraConfig)} ${cfg.rootDir}/config.yml
+
+      ${lib.optionalString (cfg.tokenIdFile != null) ''
+        replace-secret '@TOKEN_ID@' ${lib.escapeShellArg cfg.tokenIdFile} ${cfg.rootDir}/config.yml
+      ''}
+
+      ${lib.optionalString (cfg.tokenFile != null) ''
+        replace-secret '@TOKEN@' ${lib.escapeShellArg cfg.tokenFile} ${cfg.rootDir}/config.yml
+      ''}
+    '';
+  };
 in {
   options.services.pterodactyl.wings = {
     enable = lib.mkEnableOption "Pterodactyl Wings service";
@@ -302,26 +316,13 @@ in {
 
       serviceConfig = {
         Type = "oneshot";
+        ExecStart = lib.getExe setupScript;
         RemainAfterExit = true;
         User = cfg.user;
         Group = cfg.group;
         StateDirectory = "pterodactyl-wings";
         ReadWritePaths = ["${cfg.rootDir}"];
       };
-
-      script = ''
-        set -eu
-
-        install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${wingsConfigFile} ${cfg.rootDir}/config.yml
-
-        ${lib.optionalString (cfg.tokenIdFile != null) ''
-          ${pkgs.replace-secret}/bin/replace-secret '@TOKEN_ID@' ${lib.escapeShellArg cfg.tokenIdFile} ${cfg.rootDir}/config.yml
-        ''}
-
-        ${lib.optionalString (cfg.tokenFile != null) ''
-          ${pkgs.replace-secret}/bin/replace-secret '@TOKEN@' ${lib.escapeShellArg cfg.tokenFile} ${cfg.rootDir}/config.yml
-        ''}
-      '';
     };
 
     systemd.services.pterodactyl-wings = {

@@ -104,6 +104,45 @@
         zip
       ]);
   };
+
+  setupScript = pkgs.writeShellApplication {
+    name = "pterodactyl-panel-setup";
+    runtimeInputs = [pkgs.coreutils pkgs.replace-secret php];
+    text = ''
+      install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (lib.generators.toKeyValue {
+          mkKeyValue = lib.generators.mkKeyValueDefault {
+            mkValueString = v:
+              if builtins.isString v && lib.strings.hasInfix " " v
+              then ''"${v}"''
+              else lib.generators.mkValueStringDefault {} v;
+          } "=";
+        }
+        env)} /var/lib/pterodactyl-panel/.env
+
+      ${lib.optionalString (cfg.app.keyFile != null) ''
+        replace-secret '@APP_KEY@' ${lib.escapeShellArg cfg.app.keyFile} /var/lib/pterodactyl-panel/.env
+      ''}
+
+      ${lib.optionalString (cfg.database.passwordFile != null) ''
+        replace-secret '@DB_PASSWORD@' ${lib.escapeShellArg cfg.database.passwordFile} /var/lib/pterodactyl-panel/.env
+      ''}
+
+      ${lib.optionalString (cfg.redis.passwordFile != null) ''
+        replace-secret '@REDIS_PASSWORD@' ${lib.escapeShellArg cfg.redis.passwordFile} /var/lib/pterodactyl-panel/.env
+      ''}
+
+      ${lib.optionalString (cfg.hashids.saltFile != null) ''
+        replace-secret '@HASHIDS_SALT@' ${lib.escapeShellArg cfg.hashids.saltFile} /var/lib/pterodactyl-panel/.env
+      ''}
+
+      ${lib.optionalString (cfg.mail.passwordFile != null) ''
+        replace-secret '@MAIL_PASSWORD@' ${lib.escapeShellArg cfg.mail.passwordFile} /var/lib/pterodactyl-panel/.env
+      ''}
+
+      php ${cfg.package}/artisan migrate --seed --force
+      php ${cfg.package}/artisan optimize:clear
+    '';
+  };
 in {
   options.services.pterodactyl.panel = {
     enable = lib.mkEnableOption "Pterodactyl Panel";
@@ -416,6 +455,7 @@ in {
 
       serviceConfig = {
         Type = "oneshot";
+        ExecStart = lib.getExe setupScript;
         RemainAfterExit = true;
         User = cfg.user;
         Group = cfg.group;
