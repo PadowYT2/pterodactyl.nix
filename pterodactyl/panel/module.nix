@@ -423,43 +423,6 @@ in {
         ReadWritePaths = ["/var/lib/pterodactyl-panel"];
         StateDirectory = "pterodactyl-panel";
       };
-
-      script = ''
-        set -eu
-
-        install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (lib.generators.toKeyValue {
-            mkKeyValue = lib.generators.mkKeyValueDefault {
-              mkValueString = v:
-                if builtins.isString v && lib.strings.hasInfix " " v
-                then ''"${v}"''
-                else lib.generators.mkValueStringDefault {} v;
-            } "=";
-          }
-          env)} /var/lib/pterodactyl-panel/.env
-
-        ${lib.optionalString (cfg.app.keyFile != null) ''
-          ${pkgs.replace-secret}/bin/replace-secret '@APP_KEY@' ${lib.escapeShellArg cfg.app.keyFile} /var/lib/pterodactyl-panel/.env
-        ''}
-
-        ${lib.optionalString (cfg.database.passwordFile != null) ''
-          ${pkgs.replace-secret}/bin/replace-secret '@DB_PASSWORD@' ${lib.escapeShellArg cfg.database.passwordFile} /var/lib/pterodactyl-panel/.env
-        ''}
-
-        ${lib.optionalString (cfg.redis.passwordFile != null) ''
-          ${pkgs.replace-secret}/bin/replace-secret '@REDIS_PASSWORD@' ${lib.escapeShellArg cfg.redis.passwordFile} /var/lib/pterodactyl-panel/.env
-        ''}
-
-        ${lib.optionalString (cfg.hashids.saltFile != null) ''
-          ${pkgs.replace-secret}/bin/replace-secret '@HASHIDS_SALT@' ${lib.escapeShellArg cfg.hashids.saltFile} /var/lib/pterodactyl-panel/.env
-        ''}
-
-        ${lib.optionalString (cfg.mail.passwordFile != null) ''
-          ${pkgs.replace-secret}/bin/replace-secret '@MAIL_PASSWORD@' ${lib.escapeShellArg cfg.mail.passwordFile} /var/lib/pterodactyl-panel/.env
-        ''}
-
-        ${php}/bin/php ${cfg.package}/artisan migrate --seed --force
-        ${php}/bin/php ${cfg.package}/artisan optimize:clear
-      '';
     };
 
     systemd.services.pteroq = {
@@ -469,10 +432,10 @@ in {
       wantedBy = ["multi-user.target"];
 
       serviceConfig = {
+        ExecStart = "${php}/bin/php ${cfg.package}/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
         User = cfg.user;
         Group = cfg.group;
         Restart = "always";
-        ExecStart = "${php}/bin/php ${cfg.package}/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
         WorkingDirectory = cfg.package;
         ReadWritePaths = ["/var/lib/pterodactyl-panel"];
         StateDirectory = "pterodactyl-panel";
@@ -486,12 +449,12 @@ in {
 
       serviceConfig = {
         Type = "oneshot";
+        ExecStart = "${php}/bin/php ${cfg.package}/artisan schedule:run";
         User = cfg.user;
         Group = cfg.group;
         WorkingDirectory = cfg.package;
         ReadWritePaths = ["/var/lib/pterodactyl-panel"];
         StateDirectory = "pterodactyl-panel";
-        ExecStart = "${php}/bin/php ${cfg.package}/artisan schedule:run";
       };
     };
 
