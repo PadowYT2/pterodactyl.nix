@@ -10,7 +10,7 @@ buildGoModule rec {
   src = fetchFromGitHub {
     owner = "pterodactyl";
     repo = "wings";
-    rev = "v${version}";
+    tag = "v${version}";
     sha256 = "sha256-UpYUHWM2J8nH+srdKSpFQEaPx2Rj2+YdphV8jJXcoBU=";
   };
 

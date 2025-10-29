@@ -16,7 +16,7 @@ stdenvNoCC.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "pterodactyl";
     repo = "panel";
-    rev = "v${version}";
+    tag = "v${version}";
     sha256 = "sha256-Os8fTkruiUh6+ec5txhVgXPSDC2/LaCtvij7rQuWy0U=";
   };
 
