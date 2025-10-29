@@ -28,6 +28,7 @@ buildGoModule (finalAttrs: {
     homepage = "https://pterodactyl.io";
     changelog = "https://github.com/pterodactyl/wings/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.mit;
+    mainProgram = "wings";
     platforms = lib.platforms.linux;
   };
 })
