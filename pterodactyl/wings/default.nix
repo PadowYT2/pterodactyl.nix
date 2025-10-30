@@ -4,7 +4,7 @@
   fetchFromGitHub,
 }:
 buildGoModule (finalAttrs: {
-  pname = "wings";
+  pname = "pterodactyl-wings";
   version = "1.11.13";
 
   src = fetchFromGitHub {
