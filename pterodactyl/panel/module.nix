@@ -109,7 +109,7 @@
     name = "pterodactyl-panel-setup";
     runtimeInputs = with pkgs; [coreutils replace-secret php];
     text = ''
-      install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (lib.generators.toKeyValue {
+      install -Dm640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (lib.generators.toKeyValue {
           mkKeyValue = lib.generators.mkKeyValueDefault {
             mkValueString = v:
               if builtins.isString v && lib.strings.hasInfix " " v

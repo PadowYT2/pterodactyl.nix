@@ -64,7 +64,7 @@
     name = "pterodactyl-wings-setup";
     runtimeInputs = with pkgs; [coreutils replace-secret];
     text = ''
-      install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${(pkgs.formats.yaml {}).generate "config.yml" (lib.recursiveUpdate mainConfig cfg.extraConfig)} ${cfg.rootDir}/config.yml
+      install -Dm640 -o ${cfg.user} -g ${cfg.group} ${(pkgs.formats.yaml {}).generate "config.yml" (lib.recursiveUpdate mainConfig cfg.extraConfig)} ${cfg.rootDir}/config.yml
 
       ${lib.optionalString (cfg.tokenIdFile != null) ''
         replace-secret '@TOKEN_ID@' ${lib.escapeShellArg cfg.tokenIdFile} ${cfg.rootDir}/config.yml
