@@ -17,7 +17,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     owner = "pterodactyl";
     repo = "panel";
     tag = "v${finalAttrs.version}";
-    sha256 = "sha256-Os8fTkruiUh6+ec5txhVgXPSDC2/LaCtvij7rQuWy0U=";
+    hash = "sha256-Os8fTkruiUh6+ec5txhVgXPSDC2/LaCtvij7rQuWy0U=";
   };
 
   buildInputs = [php83];

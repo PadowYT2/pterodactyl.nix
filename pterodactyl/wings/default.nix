@@ -11,7 +11,7 @@ buildGoModule (finalAttrs: {
     owner = "pterodactyl";
     repo = "wings";
     tag = "v${finalAttrs.version}";
-    sha256 = "sha256-UpYUHWM2J8nH+srdKSpFQEaPx2Rj2+YdphV8jJXcoBU=";
+    hash = "sha256-UpYUHWM2J8nH+srdKSpFQEaPx2Rj2+YdphV8jJXcoBU=";
   };
 
   vendorHash = "sha256-eWfQE9cQ7zIkITWwnVu9Sf9vVFjkQih/ZW77d6p/Iw0=";
