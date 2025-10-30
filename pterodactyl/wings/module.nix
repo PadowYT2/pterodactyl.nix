@@ -62,7 +62,7 @@
 
   setupScript = pkgs.writeShellApplication {
     name = "pterodactyl-wings-setup";
-    runtimeInputs = [pkgs.coreutils pkgs.replace-secret];
+    runtimeInputs = with pkgs; [coreutils replace-secret];
     text = ''
       install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${(pkgs.formats.yaml {}).generate "config.yml" (lib.recursiveUpdate mainConfig cfg.extraConfig)} ${cfg.rootDir}/config.yml
 

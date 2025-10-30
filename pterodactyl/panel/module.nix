@@ -107,7 +107,7 @@
 
   setupScript = pkgs.writeShellApplication {
     name = "pterodactyl-panel-setup";
-    runtimeInputs = [pkgs.coreutils pkgs.replace-secret php];
+    runtimeInputs = with pkgs; [coreutils replace-secret php];
     text = ''
       install -D -m 640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (lib.generators.toKeyValue {
           mkKeyValue = lib.generators.mkKeyValueDefault {
