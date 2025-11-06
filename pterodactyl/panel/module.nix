@@ -158,6 +158,7 @@ in {
       type = lib.types.package;
       readOnly = true;
       default = php;
+      defaultText = lib.literalExpression "php";
       description = "The PHP package to use";
     };
 
