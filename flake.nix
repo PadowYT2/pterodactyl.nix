@@ -12,8 +12,19 @@
     ...
   } @ inputs:
     {
-      nixosModules.default = import ./module.nix;
-      overlays.default = import ./overlays.nix;
+      nixosModules.default = {
+        imports = [
+          ./pterodactyl/panel/module.nix
+          ./pterodactyl/wings/module.nix
+        ];
+      };
+
+      overlays.default = final: prev: {
+        pterodactyl = {
+          panel = prev.callPackage ./pterodactyl/panel/default.nix {};
+          wings = prev.callPackage ./pterodactyl/wings/default.nix {};
+        };
+      };
     }
     // (inputs.flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {
