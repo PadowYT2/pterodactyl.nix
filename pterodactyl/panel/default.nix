@@ -6,7 +6,7 @@
   fetchYarnDeps,
   yarnConfigHook,
   yarnBuildHook,
-  nodejs,
+  nodejs_24,
   dataDir ? "/var/lib/pterodactyl-panel",
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
@@ -22,16 +22,14 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   buildInputs = [php83];
   nativeBuildInputs = [
-    nodejs
+    nodejs_24
     yarnConfigHook
     yarnBuildHook
     php83.composerHooks2.composerInstallHook
   ];
 
   composerVendor = php83.mkComposerVendor {
-    pname = finalAttrs.pname;
-    src = finalAttrs.src;
-    version = finalAttrs.version;
+    inherit (finalAttrs) pname src version;
     composerNoDev = true;
     composerNoPlugins = true;
     composerNoScripts = true;
@@ -47,19 +45,19 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   env.NODE_OPTIONS = "--openssl-legacy-provider";
   yarnBuildScript = "build:production";
-  dontYarnBuild = true;
 
-  preInstall = ''
-    yarn --offline build:production
-  '';
+  installPhase = ''
+    runHook preInstall
 
-  postInstall = ''
     chmod -R u+w $out/share
     mv $out/share/php/pterodactyl-panel/* $out/
+
     rm -rf $out/share $out/storage $out/bootstrap/cache $out/node_modules
     ln -s ${dataDir}/storage $out/storage
     ln -s ${dataDir}/bootstrap/cache $out/bootstrap/cache
     ln -s ${dataDir}/.env $out/.env
+
+    runHook postInstall
   '';
 
   meta = {
@@ -67,5 +65,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     homepage = "https://pterodactyl.io";
     changelog = "https://github.com/pterodactyl/panel/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.mit;
+    platforms = lib.platforms.all;
   };
 })
