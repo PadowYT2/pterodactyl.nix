@@ -282,6 +282,12 @@ in {
       default = {};
       description = "Extra configuration to be merged with the main configuration";
     };
+
+    extraConfigFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = "Extra configuration file to be merged with the other configuration";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -377,6 +383,7 @@ in {
           ExecStart = "${cfg.package}/bin/wings --config ${cfg.rootDir}/config.yml";
           Restart = "on-failure";
           AmbientCapabilities = "CAP_CHOWN";
+          EnvironmentFile = lib.optional (cfg.extraConfigFile != null) cfg.extraConfigFile;
         };
     };
 

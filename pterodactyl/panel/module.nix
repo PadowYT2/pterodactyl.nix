@@ -139,6 +139,10 @@
         replace-secret '@MAIL_PASSWORD@' ${lib.escapeShellArg cfg.mail.passwordFile} ${cfg.dataDir}/.env
       ''}
 
+      ${lib.optionalString (cfg.extraEnvironmentFile != null) ''
+        cat ${lib.escapeShellArg cfg.extraEnvironmentFile} >> ${cfg.dataDir}/.env
+      ''}
+
       php ${cfg.package}/artisan migrate --seed --force
       php ${cfg.package}/artisan optimize:clear
     '';
@@ -249,31 +253,37 @@ in {
         default = true;
         description = "Whether to create the database locally";
       };
+
       host = lib.mkOption {
         type = lib.types.str;
         default = "127.0.0.1";
         description = "The host of the database";
       };
+
       port = lib.mkOption {
         type = lib.types.port;
         default = 3306;
         description = "The port of the database";
       };
+
       name = lib.mkOption {
         type = lib.types.str;
         default = "panel";
         description = "The name of the database";
       };
+
       user = lib.mkOption {
         type = lib.types.str;
         default = "pterodactyl-panel";
         description = "The user for the database";
       };
+
       password = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
         description = "The password for the database";
       };
+
       passwordFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
@@ -287,26 +297,31 @@ in {
         default = true;
         description = "Whether to create the Redis instance locally";
       };
+
       name = lib.mkOption {
         type = lib.types.str;
         default = "pterodactyl-panel";
         description = "The name of the Redis server to create";
       };
+
       host = lib.mkOption {
         type = lib.types.str;
         default = "127.0.0.1";
         description = "The host of the Redis server";
       };
+
       password = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
         description = "The password for the Redis server";
       };
+
       passwordFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
         description = "Path to a file containing the Redis password";
       };
+
       port = lib.mkOption {
         type = lib.types.port;
         default = 6379;
@@ -338,11 +353,13 @@ in {
         default = null;
         description = "The salt for the hash";
       };
+
       saltFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
         description = "Path to a file containing the hash salt";
       };
+
       length = lib.mkOption {
         type = lib.types.int;
         default = 8;
@@ -356,41 +373,49 @@ in {
         default = "smtp";
         description = "The mailer to use";
       };
+
       host = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
         description = "The host of the mail server";
       };
+
       port = lib.mkOption {
         type = lib.types.port;
         default = 25;
         description = "The port of the mail server";
       };
+
       username = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
         description = "The username for the mail server";
       };
+
       password = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
         description = "The password for the mail server";
       };
+
       passwordFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
         description = "Path to a file containing the mail password";
       };
+
       encryption = lib.mkOption {
         type = lib.types.str;
         default = "tls";
         description = "The encryption for the mail server";
       };
+
       fromAddress = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
         description = "The from address for the mail server";
       };
+
       fromName = lib.mkOption {
         type = lib.types.str;
         default = "Pterodactyl Panel";
@@ -414,6 +439,12 @@ in {
       type = lib.types.attrsOf lib.types.str;
       default = {};
       description = "Extra environment variables to be merged with the main environment variables";
+    };
+
+    extraEnvironmentFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = "Additional environment file to be merged with other environment variables";
     };
   };
 
