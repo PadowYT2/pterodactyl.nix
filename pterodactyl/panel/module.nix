@@ -143,6 +143,14 @@
       php ${cfg.package}/artisan optimize:clear
     '';
   };
+
+  cfgService = {
+    User = cfg.user;
+    Group = cfg.group;
+    WorkingDirectory = cfg.package;
+    StateDirectory = "pterodactyl-panel";
+    ReadWritePaths = [cfg.dataDir];
+  };
 in {
   options.services.pterodactyl.panel = {
     enable = lib.mkEnableOption "Pterodactyl Panel";
@@ -500,16 +508,13 @@ in {
       after = ["mysql.service"];
       restartTriggers = [cfg.package];
 
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = lib.getExe setupScript;
-        RemainAfterExit = true;
-        User = cfg.user;
-        Group = cfg.group;
-        WorkingDirectory = cfg.package;
-        ReadWritePaths = [cfg.dataDir];
-        StateDirectory = "pterodactyl-panel";
-      };
+      serviceConfig =
+        cfgService
+        // {
+          Type = "oneshot";
+          ExecStart = lib.getExe setupScript;
+          RemainAfterExit = true;
+        };
     };
 
     systemd.services.pteroq = {
@@ -518,15 +523,12 @@ in {
       wants = ["pterodactyl-panel-setup.service"];
       wantedBy = ["multi-user.target"];
 
-      serviceConfig = {
-        ExecStart = "${php}/bin/php ${cfg.package}/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
-        User = cfg.user;
-        Group = cfg.group;
-        Restart = "always";
-        WorkingDirectory = cfg.package;
-        ReadWritePaths = [cfg.dataDir];
-        StateDirectory = "pterodactyl-panel";
-      };
+      serviceConfig =
+        cfgService
+        // {
+          ExecStart = "${php}/bin/php ${cfg.package}/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
+          Restart = "always";
+        };
     };
 
     systemd.services.pterodactyl-panel-cron = {
@@ -534,15 +536,12 @@ in {
       after = ["pterodactyl-panel-setup.service" "mysql.service" "redis-pterodactyl-panel.service"];
       wants = ["pterodactyl-panel-setup.service"];
 
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = "${php}/bin/php ${cfg.package}/artisan schedule:run";
-        User = cfg.user;
-        Group = cfg.group;
-        WorkingDirectory = cfg.package;
-        ReadWritePaths = [cfg.dataDir];
-        StateDirectory = "pterodactyl-panel";
-      };
+      serviceConfig =
+        cfgService
+        // {
+          Type = "oneshot";
+          ExecStart = "${php}/bin/php ${cfg.package}/artisan schedule:run";
+        };
     };
 
     systemd.timers.pterodactyl-panel-cron = {

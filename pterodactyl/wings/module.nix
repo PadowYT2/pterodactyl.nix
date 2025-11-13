@@ -75,6 +75,21 @@
       ''}
     '';
   };
+
+  cfgService = {
+    User = cfg.user;
+    Group = cfg.group;
+    StateDirectory = "pterodactyl-wings";
+    LogsDirectory = "pterodactyl-wings";
+    CacheDirectory = "pterodactyl-wings";
+    RuntimeDirectory = "pterodactyl-wings";
+    ReadWritePaths = [
+      cfg.rootDir
+      cfg.logDir
+      cfg.tmpDir
+      cfg.runDir
+    ];
+  };
 in {
   options.services.pterodactyl.wings = {
     enable = lib.mkEnableOption "Pterodactyl Wings service";
@@ -339,15 +354,13 @@ in {
       before = ["pterodactyl-wings.service"];
       requiredBy = ["pterodactyl-wings.service"];
 
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = lib.getExe setupScript;
-        RemainAfterExit = true;
-        User = cfg.user;
-        Group = cfg.group;
-        StateDirectory = "pterodactyl-wings";
-        ReadWritePaths = ["${cfg.rootDir}"];
-      };
+      serviceConfig =
+        cfgService
+        // {
+          Type = "oneshot";
+          ExecStart = lib.getExe setupScript;
+          RemainAfterExit = true;
+        };
     };
 
     systemd.services.pterodactyl-wings = {
@@ -358,23 +371,13 @@ in {
       partOf = ["docker.service"];
       wantedBy = ["multi-user.target"];
 
-      serviceConfig = {
-        ExecStart = "${cfg.package}/bin/wings --config ${cfg.rootDir}/config.yml";
-        User = cfg.user;
-        Group = cfg.group;
-        Restart = "on-failure";
-        StateDirectory = "pterodactyl-wings";
-        LogsDirectory = "pterodactyl-wings";
-        CacheDirectory = "pterodactyl-wings";
-        RuntimeDirectory = "pterodactyl-wings";
-        ReadWritePaths = [
-          cfg.rootDir
-          cfg.logDir
-          cfg.tmpDir
-          cfg.runDir
-        ];
-        AmbientCapabilities = "CAP_CHOWN";
-      };
+      serviceConfig =
+        cfgService
+        // {
+          ExecStart = "${cfg.package}/bin/wings --config ${cfg.rootDir}/config.yml";
+          Restart = "on-failure";
+          AmbientCapabilities = "CAP_CHOWN";
+        };
     };
 
     users.users = lib.mkIf (cfg.user == "pterodactyl-wings") {
