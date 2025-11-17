@@ -84,30 +84,9 @@
     })
     // cfg.extraEnvironment;
 
-  php = pkgs.php83.buildEnv {
-    extensions = {
-      enabled,
-      all,
-    }:
-      enabled
-      ++ (with all; [
-        bcmath
-        curl
-        dom
-        gd
-        mbstring
-        mysqli
-        opcache
-        pdo
-        pdo_mysql
-        redis
-        zip
-      ]);
-  };
-
   setupScript = pkgs.writeShellApplication {
     name = "pterodactyl-panel-setup";
-    runtimeInputs = with pkgs; [coreutils replace-secret php];
+    runtimeInputs = with pkgs; [coreutils replace-secret cfg.phpPackage];
     text = ''
       install -Dm640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (lib.generators.toKeyValue {
           mkKeyValue = lib.generators.mkKeyValueDefault {
@@ -148,6 +127,15 @@
     '';
   };
 
+  pterodactylCli = pkgs.writeShellApplication {
+    name = "pterodactyl-cli";
+    runtimeInputs = [cfg.phpPackage];
+    text = ''
+      cd ${cfg.rootDir}
+      php ${cfg.package}/artisan "$@"
+    '';
+  };
+
   cfgService = {
     User = cfg.user;
     Group = cfg.group;
@@ -169,8 +157,22 @@ in {
     phpPackage = lib.mkOption {
       type = lib.types.package;
       readOnly = true;
-      default = php;
-      defaultText = lib.literalExpression "php";
+      default = pkgs.php83.buildEnv {
+        extensions = {
+          enabled,
+          all,
+        }:
+          enabled ++ (with all; [bcmath curl dom gd mbstring mysqli opcache pdo pdo_mysql rediszip]);
+      };
+      defaultText = lib.literalExpression ''
+        pkgs.php83.buildEnv {
+          extensions = {
+            enabled,
+            all,
+          }:
+            enabled ++ (with all; [bcmath curl dom gd mbstring mysqli opcache pdo pdo_mysql rediszip]);
+        };
+      '';
       description = "The PHP package to use";
     };
 
@@ -557,7 +559,7 @@ in {
       serviceConfig =
         cfgService
         // {
-          ExecStart = "${php}/bin/php ${cfg.package}/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
+          ExecStart = "${cfg.phpPackage}/bin/php ${cfg.package}/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
           Restart = "always";
         };
     };
@@ -571,7 +573,7 @@ in {
         cfgService
         // {
           Type = "oneshot";
-          ExecStart = "${php}/bin/php ${cfg.package}/artisan schedule:run";
+          ExecStart = "${cfg.phpPackage}/bin/php ${cfg.package}/artisan schedule:run";
         };
     };
 
@@ -589,7 +591,7 @@ in {
     services.phpfpm.pools.pterodactyl-panel = lib.mkIf cfg.enableNginx {
       user = cfg.user;
       group = cfg.group;
-      phpPackage = php;
+      phpPackage = cfg.phpPackage;
       settings = {
         "listen.owner" = config.services.nginx.user;
         "listen.group" = config.services.nginx.group;
@@ -645,6 +647,8 @@ in {
         };
       };
     };
+
+    environment.systemPackages = [pterodactylCli];
 
     services.pterodactyl.panel.group = lib.mkIf cfg.enableNginx (lib.mkDefault config.services.nginx.group);
 
