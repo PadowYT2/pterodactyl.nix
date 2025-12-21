@@ -162,7 +162,22 @@ in {
           enabled,
           all,
         }:
-          enabled ++ (with all; [bcmath curl dom gd mbstring mysqli opcache pdo pdo_mysql rediszip]);
+          enabled
+          ++ (with all; [
+            bcmath
+            curl
+            dom
+            gd
+            mbstring
+            mysqli
+            opcache
+            pdo
+            pdo_mysql
+            xml
+            tokenizer
+            openssl
+            zip
+          ]);
       };
       defaultText = lib.literalExpression ''
         pkgs.php83.buildEnv {
@@ -170,7 +185,22 @@ in {
             enabled,
             all,
           }:
-            enabled ++ (with all; [bcmath curl dom gd mbstring mysqli opcache pdo pdo_mysql rediszip]);
+            enabled
+            ++ (with all; [
+              bcmath
+              curl
+              dom
+              gd
+              mbstring
+              mysqli
+              opcache
+              pdo
+              pdo_mysql
+              xml
+              tokenizer
+              openssl
+              zip
+            ]);
         };
       '';
       description = "The PHP package to use";
