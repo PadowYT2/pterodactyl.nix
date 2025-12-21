@@ -131,7 +131,7 @@
     name = "pterodactyl-cli";
     runtimeInputs = [cfg.phpPackage];
     text = ''
-      cd ${cfg.rootDir}
+      cd ${cfg.dataDir}
       php ${cfg.package}/artisan "$@"
     '';
   };
