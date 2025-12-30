@@ -353,6 +353,21 @@ in {
           group = cfg.group;
           mode = "0644";
         };
+        "${cfg.runDir}".d = {
+          user = cfg.user;
+          group = cfg.group;
+          mode = "0755";
+        };
+        "${cfg.logDir}".d = {
+          user = cfg.user;
+          group = cfg.group;
+          mode = "0755";
+        };
+        "${cfg.tmpDir}".d = {
+          user = cfg.user;
+          group = cfg.group;
+          mode = "0755";
+        };
       };
 
     systemd.services.pterodactyl-wings-setup = {
