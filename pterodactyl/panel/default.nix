@@ -25,6 +25,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     nodejs_24
     yarnConfigHook
     yarnBuildHook
+    php83.packages.composer
     php83.composerHooks2.composerInstallHook
   ];
 
