@@ -79,10 +79,10 @@
   cfgService = {
     User = cfg.user;
     Group = cfg.group;
-    StateDirectory = "pterodactyl-wings";
-    LogsDirectory = "pterodactyl-wings";
-    CacheDirectory = "pterodactyl-wings";
-    RuntimeDirectory = "pterodactyl-wings";
+    StateDirectory = lib.removePrefix "/var/lib/" cfg.rootDir;
+    LogsDirectory = lib.removePrefix "/var/log/" cfg.logDir;
+    CacheDirectory = lib.removePrefix "/var/cache/" cfg.tmpDir;
+    RuntimeDirectory = lib.removePrefix "/run/" cfg.runDir;
     ReadWritePaths = [
       cfg.rootDir
       cfg.logDir
