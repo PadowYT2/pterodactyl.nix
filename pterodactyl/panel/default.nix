@@ -11,13 +11,13 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "pterodactyl-panel";
-  version = "1.11.11";
+  version = "1.12.0";
 
   src = fetchFromGitHub {
     owner = "pterodactyl";
     repo = "panel";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-Os8fTkruiUh6+ec5txhVgXPSDC2/LaCtvij7rQuWy0U=";
+    hash = "sha256-8DthHZqlNisNeYGVM0Hsxa0ml4sfoM3v5fqAPhNZCrU=";
   };
 
   buildInputs = [php83];
@@ -36,12 +36,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     composerNoScripts = true;
     composerStrictValidation = true;
     strictDeps = true;
-    vendorHash = "sha256-4gFxAch/HY0mQTAytg4UbXdtJbJE2+ByGx9Vo/FqMeo=";
+    vendorHash = "sha256-mR09x1YPMkCMjGE0xGkZz0bIFXtOPhs7bS9QTbkx3XE=";
   };
 
   offlineCache = fetchYarnDeps {
     yarnLock = "${finalAttrs.src}/yarn.lock";
-    hash = "sha256-Pv2/0kfOKaAMeioNU1MBdwVEMjDbk+QR8Qs1EwA5bsQ=";
+    hash = "sha256-YJDf+uQ4/x+m+7yBOJ4roUuEXjrZ8EDGNyeghBQcGtE=";
   };
 
   env.NODE_OPTIONS = "--openssl-legacy-provider";
