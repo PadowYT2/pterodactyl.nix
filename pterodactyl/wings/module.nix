@@ -54,6 +54,7 @@
         };
       };
       passwd.directory = "${cfg.runDir}/etc";
+      machine_id.directory = "${cfg.runDir}/machine-id";
       use_openat2 = false;
     };
     remote = cfg.remote;
