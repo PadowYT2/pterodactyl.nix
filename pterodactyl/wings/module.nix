@@ -326,6 +326,7 @@ in {
     systemd.tmpfiles.settings."10-pterodactyl-wings" =
       lib.attrsets.genAttrs
       [
+        "${cfg.rootDir}/machine-id"
         "${cfg.rootDir}/volumes"
         "${cfg.rootDir}/volumes/.sftp"
         "${cfg.rootDir}/archives"
