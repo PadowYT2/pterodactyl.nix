@@ -99,7 +99,7 @@ in {
       type = lib.types.package;
       default = pkgs.pterodactyl.wings;
       defaultText = "pkgs.pterodactyl.wings";
-      description = "The Pterodactyl Wings package to use";
+      description = "Pterodactyl Wings package to use";
     };
 
     user = lib.mkOption {

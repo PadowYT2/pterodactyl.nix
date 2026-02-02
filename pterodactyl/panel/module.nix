@@ -150,7 +150,11 @@ in {
     package = lib.mkOption {
       type = lib.types.package;
       default = pkgs.pterodactyl.panel;
-      defaultText = "pkgs.pterodactyl.panel";
+      defaultText = lib.literalExpression ''
+        pkgs.pterodactyl.panel.override {
+          dataDir = config.services.pterodactyl.panel.dataDir;
+        };
+      '';
       description = "Pterodactyl Panel package to use";
     };
 
@@ -481,6 +485,12 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    services.pterodactyl.panel.package = lib.mkDefault (
+      pkgs.pterodactyl.panel.override {
+        dataDir = cfg.dataDir;
+      }
+    );
+
     assertions = [
       {
         assertion = cfg.app.key == null || cfg.app.keyFile == null;
