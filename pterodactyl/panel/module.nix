@@ -79,6 +79,16 @@
       MAIL_FROM_ADDRESS = cfg.mail.fromAddress;
       MAIL_FROM_NAME = cfg.mail.fromName;
 
+      RECAPTCHA_ENABLED = cfg.recaptcha.enabled;
+      RECAPTCHA_SECRET_KEY =
+        if cfg.recaptcha.secretKeyFile != null
+        then "@RECAPTCHA_SECRET_KEY@"
+        else cfg.recaptcha.secretKey;
+      RECAPTCHA_WEBSITE_KEY =
+        if cfg.recaptcha.websiteKeyFile != null
+        then "@RECAPTCHA_WEBSITE_KEY@"
+        else cfg.recaptcha.websiteKey;
+
       TRUSTED_PROXIES = builtins.concatStringsSep "," cfg.trustedProxies;
       PTERODACTYL_TELEMETRY_ENABLED = cfg.telemetry.enable;
     })
@@ -116,6 +126,14 @@
 
       ${lib.optionalString (cfg.mail.passwordFile != null) ''
         replace-secret '@MAIL_PASSWORD@' ${lib.escapeShellArg cfg.mail.passwordFile} ${cfg.dataDir}/.env
+      ''}
+
+      ${lib.optionalString (cfg.recaptcha.secretKeyFile != null) ''
+        replace-secret '@RECAPTCHA_SECRET_KEY@' ${lib.escapeShellArg cfg.recaptcha.secretKeyFile} ${cfg.dataDir}/.env
+      ''}
+
+      ${lib.optionalString (cfg.recaptcha.websiteKeyFile != null) ''
+        replace-secret '@RECAPTCHA_WEBSITE_KEY@' ${lib.escapeShellArg cfg.recaptcha.websiteKeyFile} ${cfg.dataDir}/.env
       ''}
 
       ${lib.optionalString (cfg.extraEnvironmentFile != null) ''
@@ -456,6 +474,38 @@ in {
         type = lib.types.str;
         default = "Pterodactyl Panel";
         description = "The from name for the mail server";
+      };
+    };
+
+    recaptcha = {
+      enabled = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Whether to enable reCAPTCHA";
+      };
+
+      secretKey = lib.mkOption {
+        type = lib.types.str;
+        default = "6LcJcjwUAAAAALOcDJqAEYKTDhwELCkzUkNDQ0J5";
+        description = "The reCAPTCHA secret key";
+      };
+
+      secretKeyFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = "Path to a file containing the reCAPTCHA secret key";
+      };
+
+      websiteKey = lib.mkOption {
+        type = lib.types.str;
+        default = "6LcJcjwUAAAAAO_Xqjrtj9wWufUpYRnK6BW8lnfn";
+        description = "The reCAPTCHA website key";
+      };
+
+      websiteKeyFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = "Path to a file containing the reCAPTCHA website key";
       };
     };
 
