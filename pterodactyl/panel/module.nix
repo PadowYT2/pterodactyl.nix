@@ -96,7 +96,7 @@
 
   setupScript = pkgs.writeShellApplication {
     name = "pterodactyl-panel-setup";
-    runtimeInputs = with pkgs; [coreutils replace-secret cfg.phpPackage];
+    runtimeInputs = with pkgs; [coreutils replace-secret cfg.phpPackage mariadb];
     text = ''
       install -Dm640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (lib.generators.toKeyValue {
           mkKeyValue = lib.generators.mkKeyValueDefault {
