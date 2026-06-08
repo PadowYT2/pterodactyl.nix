@@ -756,6 +756,4 @@ in {
       ${cfg.group} = {};
     };
   };
-
-  meta.doc = ./panel.md;
 }
