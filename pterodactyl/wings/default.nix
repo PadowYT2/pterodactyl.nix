@@ -5,13 +5,13 @@
 }:
 buildGoModule (finalAttrs: {
   pname = "pterodactyl-wings";
-  version = "1.12.2";
+  version = "1.12.3";
 
   src = fetchFromGitHub {
     owner = "pterodactyl";
     repo = "wings";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-3N/ldGLPCsbzQspLbtFOKzt2WZAqzd/RfIRQRnbpZ2E=";
+    hash = "sha256-+iEKAliBJlM/Af5uBGzv4B/zkcXSF9sBvSswMwhu5/w=";
   };
 
   vendorHash = "sha256-BtATik0egFk73SNhawbGnbuzjoZioGFWeA4gZOaofTI=";
