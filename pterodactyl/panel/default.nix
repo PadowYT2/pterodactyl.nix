@@ -11,13 +11,13 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "pterodactyl-panel";
-  version = "1.12.4";
+  version = "1.14.0";
 
   src = fetchFromGitHub {
     owner = "pterodactyl";
     repo = "panel";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-145gdm0AanKMQiAZFc74yrgmTwepk2AD9iDlsfAUvs0=";
+    hash = "sha256-weUD5krGNSFt7XAVcs5eMfTubWBnQdjQLaDs3pXmbyU=";
   };
 
   buildInputs = [php83];
@@ -36,7 +36,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     composerNoScripts = true;
     composerStrictValidation = true;
     strictDeps = true;
-    vendorHash = "sha256-ExuMvKmWNZvx/Ot/xjuzFqpWN0Ufr5e/Dbv3IWlXUD4=";
+    vendorHash = "sha256-F9GidbW7D/lfFWq6Bu/lhdaUGupTb5HMwjgTk8TG4JY=";
   };
 
   offlineCache = fetchYarnDeps {
