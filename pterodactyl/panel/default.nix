@@ -47,6 +47,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   env.NODE_OPTIONS = "--openssl-legacy-provider";
   yarnBuildScript = "build:production";
 
+  postPatch = ''
+    substituteInPlace config/app.php --replace-fail "'canary'" "'${finalAttrs.version}'"
+  '';
+
   installPhase = ''
     runHook preInstall
 
