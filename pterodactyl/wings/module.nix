@@ -397,7 +397,7 @@ in {
       serviceConfig =
         cfgService
         // {
-          ExecStart = "${cfg.package}/bin/wings --config ${cfg.rootDir}/config.yml";
+          ExecStart = "${lib.getExe cfg.package} --config ${cfg.rootDir}/config.yml";
           Restart = "on-failure";
           AmbientCapabilities = "CAP_CHOWN";
           EnvironmentFile = lib.optional (cfg.extraConfigFile != null) cfg.extraConfigFile;

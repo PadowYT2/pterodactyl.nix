@@ -650,7 +650,7 @@ in {
       serviceConfig =
         cfgService
         // {
-          ExecStart = "${cfg.phpPackage}/bin/php ${cfg.package}/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
+          ExecStart = "${lib.getExe cfg.phpPackage} ${cfg.package}/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3";
           Restart = "always";
         };
     };
@@ -664,7 +664,7 @@ in {
         cfgService
         // {
           Type = "oneshot";
-          ExecStart = "${cfg.phpPackage}/bin/php ${cfg.package}/artisan schedule:run";
+          ExecStart = "${lib.getExe cfg.phpPackage} ${cfg.package}/artisan schedule:run";
         };
     };
 
