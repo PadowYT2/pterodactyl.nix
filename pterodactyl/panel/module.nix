@@ -96,7 +96,7 @@
 
   setupScript = pkgs.writeShellApplication {
     name = "pterodactyl-panel-setup";
-    runtimeInputs = with pkgs; [coreutils replace-secret cfg.phpPackage mariadb];
+    runtimeInputs = with pkgs; [coreutils replace-secret cfg.phpPackage config.services.mysql.package];
     text = ''
       install -Dm640 -o ${cfg.user} -g ${cfg.group} ${pkgs.writeText "pterodactyl.env" (lib.generators.toKeyValue {
           mkKeyValue = lib.generators.mkKeyValueDefault {
@@ -574,7 +574,7 @@ in {
 
     services.mysql = lib.optionalAttrs cfg.database.createLocally {
       enable = true;
-      package = pkgs.mariadb;
+      package = lib.mkDefault pkgs.mariadb;
       ensureDatabases = [cfg.database.name];
       ensureUsers = [
         {
