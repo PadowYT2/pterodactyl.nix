@@ -329,55 +329,6 @@ in {
 
     networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [cfg.api.port cfg.system.sftp.port];
 
-    systemd.tmpfiles.settings."10-pterodactyl-wings" =
-      lib.attrsets.genAttrs
-      [
-        "${cfg.rootDir}/machine-id"
-        "${cfg.rootDir}/volumes"
-        "${cfg.rootDir}/volumes/.sftp"
-        "${cfg.rootDir}/archives"
-        "${cfg.rootDir}/backups"
-      ]
-      (n: {
-        d = {
-          user = cfg.user;
-          group = cfg.group;
-          mode = "0755";
-        };
-      })
-      // {
-        "${cfg.rootDir}".d = {
-          user = cfg.user;
-          group = cfg.group;
-          mode = "0750";
-        };
-        "${cfg.rootDir}/wings.db".z = {
-          user = cfg.user;
-          group = cfg.group;
-          mode = "0644";
-        };
-        "${cfg.rootDir}/states.json".z = {
-          user = cfg.user;
-          group = cfg.group;
-          mode = "0644";
-        };
-        "${cfg.runDir}".d = {
-          user = cfg.user;
-          group = cfg.group;
-          mode = "0755";
-        };
-        "${cfg.logDir}".d = {
-          user = cfg.user;
-          group = cfg.group;
-          mode = "0755";
-        };
-        "${cfg.tmpDir}".d = {
-          user = cfg.user;
-          group = cfg.group;
-          mode = "0755";
-        };
-      };
-
     systemd.services.pterodactyl-wings-setup = {
       description = "Pterodactyl Wings setup";
       before = ["pterodactyl-wings.service"];
