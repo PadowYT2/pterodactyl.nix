@@ -254,8 +254,8 @@ in {
 
     app = {
       name = lib.mkOption {
-        type = lib.types.str;
-        default = "Pterodactyl";
+        type = lib.types.nullOr lib.types.str;
+        default = null;
         description = "The name of the panel";
       };
 
