@@ -120,6 +120,12 @@ in {
       description = "Whether to open the Wings API and SFTP ports in the firewall";
     };
 
+    containerRuntime = lib.mkOption {
+      type = lib.types.enum ["docker"];
+      default = "docker";
+      description = "The container runtime to use for Wings";
+    };
+
     rootDir = lib.mkOption {
       type = lib.types.path;
       default = "/var/lib/pterodactyl-wings";
@@ -319,7 +325,7 @@ in {
       }
     ];
 
-    virtualisation.docker.enable = true;
+    virtualisation.docker.enable = lib.mkIf (cfg.containerRuntime == "docker") true;
 
     networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [cfg.api.port cfg.system.sftp.port];
 
