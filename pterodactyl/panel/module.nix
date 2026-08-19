@@ -19,7 +19,7 @@
       APP_URL = cfg.app.url;
       APP_ENVIRONMENT_ONLY = cfg.app.environmentOnly;
 
-      DB_CONNECTION = "mysql";
+      DB_CONNECTION = "mariadb";
       DB_HOST =
         if cfg.database.createLocally
         then "localhost"
