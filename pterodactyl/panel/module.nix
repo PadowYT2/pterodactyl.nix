@@ -594,6 +594,8 @@ in {
       // lib.optionalAttrs (cfg.redis.passwordFile != null) {requirePassFile = cfg.redis.passwordFile;}
     );
 
+    # Laravel requires these folders to be present, as they don't get auto-generated
+    # for being in use for caching (and other work).
     systemd.tmpfiles.settings."10-pterodactyl-panel" =
       lib.attrsets.genAttrs
       [
