@@ -19,6 +19,8 @@
       APP_URL = cfg.app.url;
       APP_ENVIRONMENT_ONLY = cfg.app.environmentOnly;
 
+      # This connection should follow `services.mysql.package`
+      # after the "mariadb" provider gets fixed (pterodactyl/panel#5708)
       DB_CONNECTION = "mysql";
       DB_HOST =
         if cfg.database.createLocally
