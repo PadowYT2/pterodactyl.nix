@@ -146,7 +146,7 @@ in {
 
     virtualisation.docker.enable = lib.mkIf (cfg.containerRuntime == "docker") true;
 
-    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [cfg.settings.api.port cfg.settings.system.sftp.port];
+    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [cfg.settings.api.port cfg.settings.system.sftp.bind_port];
 
     systemd.services.pterodactyl-wings = {
       description = "Pterodactyl Wings service";
