@@ -1,20 +1,20 @@
 {
   lib,
-  buildGoModule,
+  buildGo126Module,
   fetchFromGitHub,
 }:
-buildGoModule (finalAttrs: {
+buildGo126Module (finalAttrs: {
   pname = "pterodactyl-wings";
-  version = "1.13.3";
+  version = "1.13.4";
 
   src = fetchFromGitHub {
     owner = "pterodactyl";
     repo = "wings";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-12nV7jFlVbjjZT3uFbYEhTyJcZe88FEQEguBkgcbHGI=";
+    hash = "sha256-McD+dQChR3nAaZp1vsyykAqNvrV+CAmZgmjaOR6D5+c=";
   };
 
-  vendorHash = "sha256-BtATik0egFk73SNhawbGnbuzjoZioGFWeA4gZOaofTI=";
+  vendorHash = "sha256-98hvLcpcsZqC0DQ8JQ+xQ/OmvQ2fvO7neSBf3NHLlZw=";
 
   ldflags = [
     "-s"
