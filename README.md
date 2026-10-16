@@ -1,5 +1,10 @@
 # pterodactyl.nix
 
+> [!IMPORTANT]
+> I will not be updating maintaining this project when v1 will be out of support. Neither an updated version for v2 will come. See https://gist.github.com/PadowYT2/aab3e0e839f8294d46b12670122a4be1.
+>
+> If you would like to take over the project, please feel free to DM me or just fork.
+
 A flake made for [Pterodactyl](https://pterodactyl.io): A free, open-source game server management panel built with PHP, React, and Go. Designed with security in mind, Pterodactyl runs all game servers in isolated Docker containers while exposing a beautiful and intuitive UI to end users.
 
 ## Usage
