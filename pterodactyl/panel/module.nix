@@ -180,7 +180,6 @@ in {
 
     phpPackage = lib.mkOption {
       type = lib.types.package;
-      readOnly = true;
       default = pkgs.php83.buildEnv {
         extensions = {
           enabled,
